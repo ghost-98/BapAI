@@ -1,0 +1,51 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+### OS specific (운영체제 자동 생성 파일) ###
+.DS_Store
+Thumbs.db
+
+### Application specific (프로젝트 관련) ###
+# 코드에서 지정한 업로드 폴더 (이미지 등이 깃에 올라가지 않게 방지)
+uploads/
+/uploads/
+
+# 로그 파일
+*.log
+logs/
+
+### Security (보안) ###
+# 혹시라도 API 키나 DB 비밀번호를 적어둔 설정 파일이 있다면 주석 풀고 추가
+# src/main/resources/application-secret.yml
+# src/main/resources/application-dev.yml
+# .env
