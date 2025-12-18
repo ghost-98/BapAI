@@ -186,18 +186,18 @@ onMounted(() => {
     sessionStorage.removeItem('show_logout_notification');
   }
 
-  const savedUsername = localStorage.getItem('saved_username')
-  if (savedUsername) {
-    username.value = savedUsername
+  const savedUsernameValue = localStorage.getItem('savedUsername')
+  if (savedUsernameValue) {
+    username.value = savedUsernameValue
     saveUsername.value = true
   }
 })
 
 const handleLogin = async () => {
   if (saveUsername.value) {
-    localStorage.setItem('saved_username', username.value)
+    localStorage.setItem('savedUsername', username.value)
   } else {
-    localStorage.removeItem('saved_username')
+    localStorage.removeItem('savedUsername')
   }
 
   try {
@@ -205,12 +205,11 @@ const handleLogin = async () => {
       username: username.value,
       password: password.value,
     })
-
-    console.log('로그인 성공:', response.data)
     
     const { accessToken, refreshToken, name, userId, isTempPassword } = response.data
 
     if (accessToken && refreshToken && name && userId) {
+      // '로그인 유지' 상태를 setTokens 및 setUserInfo에 전달
       authStore.setTokens(accessToken, refreshToken, keepLoggedIn.value);
       authStore.setUserInfo(userId, name, keepLoggedIn.value);
       

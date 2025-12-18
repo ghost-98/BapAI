@@ -49,7 +49,13 @@ export const useAuthStore = defineStore('auth', () => {
     isReauthenticated.value = false;
     firstStepCompleted.value = false;
 
-    localStorage.clear();
+    // Clear only auth-related items from localStorage
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('name');
+
+    // Clear everything from sessionStorage as it's session-specific
     sessionStorage.clear();
   };
 

@@ -17,29 +17,17 @@
               <!-- 이름 -->
               <div>
                 <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">이름</label>
-                <input v-model="formData.name" id="name" type="text" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" placeholder="이름" />
+                <input v-model="userStore.name" id="name" type="text" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" placeholder="이름" />
               </div>
               <!-- 닉네임 -->
               <div>
                 <label for="nickname" class="block text-sm font-semibold text-gray-700 mb-2">닉네임</label>
-                <input
-                  v-model="formData.nickname"
-                  @input="onNicknameInput"
-                  @blur="checkNickname"
-                  id="nickname"
-                  type="text"
-                  required
-                  class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800"
-                  placeholder="닉네임"
-                />
-                <p v-if="nicknameMessage" :class="['mt-1 text-sm', nicknameStatus === 'available' ? 'text-green-600' : 'text-red-600']">
-                  {{ nicknameMessage }}
-                </p>
+                <input v-model="userStore.nickname" id="nickname" type="text" disabled class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-100 text-gray-500 focus:outline-none transition-colors" placeholder="닉네임" />
               </div>
               <!-- 성별 -->
               <div>
                 <label for="gender" class="block text-sm font-semibold text-gray-700 mb-2">성별</label>
-                <select v-model="formData.gender" id="gender" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800">
+                <select v-model="userStore.gender" id="gender" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800">
                   <option value="">성별을 선택하세요</option>
                   <option value="M">남성</option>
                   <option value="F">여성</option>
@@ -48,22 +36,22 @@
               <!-- 출생 연도 -->
               <div>
                 <label for="birth_year" class="block text-sm font-semibold text-gray-700 mb-2">출생 연도</label>
-                <input v-model="formData.birth_year" id="birth_year" type="number" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" placeholder="출생 연도 (YYYY)" />
+                <input v-model="userStore.birth_year" id="birth_year" type="number" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" placeholder="출생 연도 (YYYY)" />
               </div>
               <!-- 키 -->
               <div>
                 <label for="height" class="block text-sm font-semibold text-gray-700 mb-2">키 (cm)</label>
-                <input type="number" v-model="formData.height" id="height" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" placeholder="키 (cm)" required min="1" />
+                <input type="number" v-model="userStore.height" id="height" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" placeholder="키 (cm)" required min="1" />
               </div>
               <!-- 몸무게 -->
               <div>
                 <label for="weight" class="block text-sm font-semibold text-gray-700 mb-2">몸무게 (kg)</label>
-                <input type="number" v-model="formData.weight" id="weight" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" placeholder="몸무게 (kg)" required min="1" />
+                <input type="number" v-model="userStore.weight" id="weight" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" placeholder="몸무게 (kg)" required min="1" />
               </div>
               <!-- 체중 목표 -->
               <div class="md:col-span-2">
                 <label for="diet_goal" class="block text-sm font-semibold text-gray-700 mb-2">체중 목표</label>
-                <select v-model="formData.diet_goal" id="diet_goal" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800">
+                <select v-model="userStore.diet_goal" id="diet_goal" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" required>
                   <option value="" disabled>체중 목표를 선택하세요</option>
                   <option value="LOSS">체중 감량</option>
                   <option value="MAINTAIN">체중 유지</option>
@@ -73,7 +61,7 @@
               <!-- 평소활동량 -->
               <div class="md:col-span-2">
                 <label for="activity_level" class="block text-sm font-semibold text-gray-700 mb-2">평소활동량</label>
-                <select v-model="formData.activity_level" id="activity_level" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800">
+                <select v-model="userStore.activity_level" id="activity_level" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" required>
                   <option value="" disabled>평소활동량을 선택하세요</option>
                   <option value="LOW">낮음</option>
                   <option value="NORMAL">보통</option>
@@ -82,8 +70,8 @@
               </div>
             </div>
 
-            <OptionSelector title="보유 질환" :options="optionsStore.diseases" v-model="formData.diseaseIds" />
-            <OptionSelector title="알레르기" :options="optionsStore.allergies" v-model="formData.allergyIds" />
+            <OptionSelector title="보유 질환" :options="optionsStore.diseases" v-model="userStore.diseaseIds" />
+            <OptionSelector title="알레르기" :options="optionsStore.allergies" v-model="userStore.allergyIds" />
 
             <div class="pt-4">
               <button
@@ -101,7 +89,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../../stores/user'
 import { useOptionsStore } from '../../../stores/options'
@@ -112,23 +100,6 @@ const router = useRouter()
 const userStore = useUserStore()
 const optionsStore = useOptionsStore()
 
-const formData = reactive({
-  name: '',
-  nickname: '',
-  gender: '',
-  birth_year: null,
-  height: null,
-  weight: null,
-  diet_goal: '',
-  activity_level: '',
-  diseaseIds: [],
-  allergyIds: [],
-});
-
-const originalNickname = ref('');
-const nicknameStatus = ref(''); // '', 'checking', 'available', 'taken', 'available_self'
-const nicknameMessage = ref('');
-
 onMounted(async () => {
   const isReauthenticated = sessionStorage.getItem('isReauthenticated');
   if (isReauthenticated !== 'true') {
@@ -136,6 +107,7 @@ onMounted(async () => {
     router.replace({ path: '/confirm-password', query: { redirect: '/edit-profile' } });
     return;
   }
+  // Consume the reauthentication flag immediately after check
   sessionStorage.removeItem('isReauthenticated');
 
   try {
@@ -146,19 +118,6 @@ onMounted(async () => {
     
     optionsStore.setOptions(optionsResponse.data.diseases, optionsResponse.data.allergies);
 
-    // Populate form data from user store
-    formData.name = userStore.name;
-    formData.nickname = userStore.nickname;
-    originalNickname.value = userStore.nickname;
-    formData.gender = userStore.gender;
-    formData.birth_year = userStore.birth_year;
-    formData.height = userStore.height;
-    formData.weight = userStore.weight;
-    formData.diet_goal = userStore.diet_goal;
-    formData.activity_level = userStore.activity_level;
-    formData.diseaseIds = [...userStore.diseaseIds];
-    formData.allergyIds = [...userStore.allergyIds];
-
   } catch (error) {
     console.error('사용자 정보 또는 옵션 로딩 실패:', error);
     alert('페이지를 로드하는 데 실패했습니다.');
@@ -166,76 +125,23 @@ onMounted(async () => {
   }
 });
 
-const onNicknameInput = () => {
-  // Reset status if user changes nickname
-  if (formData.nickname !== originalNickname.value) {
-    nicknameStatus.value = '';
-    nicknameMessage.value = '';
-  }
-};
-
-const checkNickname = async () => {
-  if (!formData.nickname) {
-    nicknameStatus.value = '';
-    nicknameMessage.value = '닉네임을 입력해주세요.';
-    return;
-  }
-  if (formData.nickname === originalNickname.value) {
-    nicknameStatus.value = 'available_self';
-    nicknameMessage.value = '';
-    return;
-  }
-
-  nicknameStatus.value = 'checking';
-  nicknameMessage.value = '닉네임 중복을 확인 중입니다...';
-  try {
-    await apiClient.get('/auth/check-nickname', { params: { nickname: formData.nickname } });
-    nicknameStatus.value = 'available';
-    nicknameMessage.value = '사용 가능한 닉네임입니다.';
-  } catch (error) {
-    if (error.response && error.response.status === 409) {
-      nicknameStatus.value = 'taken';
-      nicknameMessage.value = '이미 사용 중인 닉네임입니다.';
-    } else {
-      nicknameStatus.value = 'error';
-      nicknameMessage.value = '확인 중 에러가 발생했습니다.';
-    }
-  }
-};
-
 const handleUpdateProfile = async () => {
-  // Nickname validation
-  if (formData.nickname !== originalNickname.value && nicknameStatus.value !== 'available') {
-    alert('닉네임이 변경되었습니다. 중복 확인을 완료해주세요.');
-    return;
-  }
-
   try {
-    // Create payload with only the changed fields
-    const payload = {};
-    for (const key in formData) {
-      if (key === 'nickname') continue; // Skip nickname for now
-      
-      if (Array.isArray(formData[key])) {
-        if (JSON.stringify(formData[key]) !== JSON.stringify(userStore[key])) {
-          payload[key] = formData[key];
-        }
-      } else if (formData[key] !== userStore[key]) {
-        payload[key] = formData[key];
-      }
-    }
-    
-    if (formData.nickname !== originalNickname.value) {
-        payload.nickname = formData.nickname;
-    }
-
-    if (Object.keys(payload).length === 0) {
-      alert('수정된 내용이 없습니다.');
-      return;
-    }
+    const payload = {
+      name: userStore.name,
+      gender: userStore.gender,
+      birth_year: Number(userStore.birth_year),
+      height: Number(userStore.height),
+      weight: Number(userStore.weight),
+      diet_goal: userStore.diet_goal,
+      activity_level: userStore.activity_level,
+      diseaseIds: userStore.diseaseIds,
+      allergyIds: userStore.allergyIds,
+    };
 
     await apiClient.patch('/members/me', payload);
     
+    // After successful submission, re-fetch user profile to update the store
     await userStore.fetchUserProfile();
 
     alert('회원 정보가 성공적으로 수정되었습니다.');
