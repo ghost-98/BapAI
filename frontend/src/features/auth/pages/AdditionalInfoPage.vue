@@ -18,8 +18,8 @@
             </select>
           </div>
           <div>
-            <label for="birth_year" class="sr-only">출생 연도</label>
-            <input type="number" v-model="birth_year" id="birth_year" class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm" placeholder="출생 연도 (YYYY)" required />
+            <label for="birthYear" class="sr-only">출생 연도</label>
+            <input type="number" v-model="birthYear" id="birthYear" class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm" placeholder="출생 연도 (YYYY)" required />
           </div>
           <div>
             <label for="height" class="sr-only">키 (cm)</label>
@@ -30,8 +30,8 @@
             <input type="number" v-model="weight" id="weight" class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm" placeholder="몸무게 (kg)" required min="1" />
           </div>
           <div>
-            <label for="diet_goal" class="sr-only">체중 목표</label>
-            <select v-model="diet_goal" id="diet_goal" class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm" required>
+            <label for="dietGoal" class="sr-only">체중 목표</label>
+            <select v-model="dietGoal" id="dietGoal" class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm" required>
               <option value="" disabled>체중 목표를 선택하세요</option>
               <option value="LOSS">체중 감량</option>
               <option value="MAINTAIN">체중 유지</option>
@@ -39,8 +39,8 @@
             </select>
           </div>
           <div>
-            <label for="activity_level" class="sr-only">평소활동량</label>
-            <select v-model="activity_level" id="activity_level" class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm" required>
+            <label for="activityLevel" class="sr-only">평소활동량</label>
+            <select v-model="activityLevel" id="activityLevel" class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm" required>
               <option value="" disabled>평소활동량을 선택하세요</option>
               <option value="LOW">낮음</option>
               <option value="NORMAL">보통</option>
@@ -79,11 +79,11 @@ const optionsStore = useOptionsStore()
 
 // Local state for form inputs
 const gender = ref('');
-const birth_year = ref('');
+const birthYear = ref('');
 const height = ref('');
 const weight = ref('');
-const diet_goal = ref('');
-const activity_level = ref('');
+const dietGoal = ref('');
+const activityLevel = ref('');
 const diseaseIds = ref([]);
 const allergyIds = ref([]);
 
@@ -101,20 +101,16 @@ const submitAdditionalInfo = async () => {
   try {
     const payload = {
       gender: gender.value,
-      birth_year: Number(birth_year.value),
+      birthYear: Number(birthYear.value),
       height: Number(height.value),
       weight: Number(weight.value),
-      diet_goal: diet_goal.value,
-      activity_level: activity_level.value,
+      dietGoal: dietGoal.value,
+      activityLevel: activityLevel.value,
       diseaseIds: diseaseIds.value,
       allergyIds: allergyIds.value,
     }
     
-    // Assuming userStore has an action to PUT to /api/members/me
-    await apiClient.put('/members/me', payload);
-
-    // After successful submission, update the user store
-    await userStore.fetchUserProfile();
+    await userStore.updateUserProfile(payload);
 
     alert('추가 정보가 성공적으로 저장되었습니다.')
     authStore.setFirstStepCompleted(false)

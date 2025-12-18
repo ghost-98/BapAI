@@ -31,7 +31,7 @@
           </div>
           <div class="flex items-baseline">
             <p class="text-sm font-semibold text-gray-600 w-28 flex-shrink-0">출생 연도</p>
-            <p class="text-gray-900 font-medium">{{ userStore.birth_year || '미입력' }}</p>
+            <p class="text-gray-900 font-medium">{{ userStore.birthYear || '미입력' }}</p>
           </div>
         </div>
 

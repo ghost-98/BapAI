@@ -35,8 +35,8 @@
               </div>
               <!-- 출생 연도 -->
               <div>
-                <label for="birth_year" class="block text-sm font-semibold text-gray-700 mb-2">출생 연도</label>
-                <input v-model="userStore.birth_year" id="birth_year" type="number" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" placeholder="출생 연도 (YYYY)" />
+                <label for="birthYear" class="block text-sm font-semibold text-gray-700 mb-2">출생 연도</label>
+                <input v-model="userStore.birthYear" id="birthYear" type="number" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" placeholder="출생 연도 (YYYY)" />
               </div>
               <!-- 키 -->
               <div>
@@ -50,8 +50,8 @@
               </div>
               <!-- 체중 목표 -->
               <div class="md:col-span-2">
-                <label for="diet_goal" class="block text-sm font-semibold text-gray-700 mb-2">체중 목표</label>
-                <select v-model="userStore.diet_goal" id="diet_goal" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" required>
+                <label for="dietGoal" class="block text-sm font-semibold text-gray-700 mb-2">체중 목표</label>
+                <select v-model="userStore.dietGoal" id="dietGoal" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800">
                   <option value="" disabled>체중 목표를 선택하세요</option>
                   <option value="LOSS">체중 감량</option>
                   <option value="MAINTAIN">체중 유지</option>
@@ -60,8 +60,8 @@
               </div>
               <!-- 평소활동량 -->
               <div class="md:col-span-2">
-                <label for="activity_level" class="block text-sm font-semibold text-gray-700 mb-2">평소활동량</label>
-                <select v-model="userStore.activity_level" id="activity_level" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" required>
+                <label for="activityLevel" class="block text-sm font-semibold text-gray-700 mb-2">평소활동량</label>
+                <select v-model="userStore.activityLevel" id="activityLevel" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800">
                   <option value="" disabled>평소활동량을 선택하세요</option>
                   <option value="LOW">낮음</option>
                   <option value="NORMAL">보통</option>
@@ -130,20 +130,17 @@ const handleUpdateProfile = async () => {
     const payload = {
       name: userStore.name,
       gender: userStore.gender,
-      birth_year: Number(userStore.birth_year),
+      birthYear: Number(userStore.birthYear),
       height: Number(userStore.height),
       weight: Number(userStore.weight),
-      diet_goal: userStore.diet_goal,
-      activity_level: userStore.activity_level,
+      dietGoal: userStore.dietGoal,
+      activityLevel: userStore.activityLevel,
       diseaseIds: userStore.diseaseIds,
       allergyIds: userStore.allergyIds,
     };
 
-    await apiClient.patch('/members/me', payload);
+    await userStore.updateUserProfile(payload);
     
-    // After successful submission, re-fetch user profile to update the store
-    await userStore.fetchUserProfile();
-
     alert('회원 정보가 성공적으로 수정되었습니다.');
     router.push('/my-info');
   } catch (error) {
