@@ -84,7 +84,7 @@
                   </div>
                   <div class="text-center">
                     <p class="text-sm text-gray-500">기록한 끼니</p>
-                    <p class="text-3xl font-bold text-gray-800">{{ dailySummary.mealCount }} / {{ mealTypes.length }}</p>
+                    <p class="text-3xl font-bold text-gray-800">{{ dailySummary.mealCount }}끼</p>
                   </div>
                 </div>
                 <div class="border-t my-4"></div>
@@ -138,7 +138,7 @@
                 </div>
                 <div class="text-center">
                   <p class="text-sm text-gray-500">총 기록한 끼니</p>
-                  <p class="text-2xl font-bold text-gray-800">{{ periodSummary.totalMeals }} <span class="text-lg font-medium">회</span></p>
+                  <p class="text-2xl font-bold text-gray-800">{{ periodSummary.totalMeals }} <span class="text-lg font-medium">끼</span></p>
                 </div>
               </div>
             </div>
@@ -296,7 +296,7 @@
       :show="isModalOpen" 
       :diet-record="selectedRecord"
       @close="closeModal"
-      @save="handleSave"
+      @save-success="handleSaveSuccess"
     />
   </main>
 </template>
@@ -609,18 +609,8 @@ const closeModal = () => {
   isModalOpen.value = false;
 };
 
-const handleSave = async (recordToSave) => {
-  try {
-    if (recordToSave.id) {
-      await apiClient.put(`/diet-logs/${recordToSave.id}`, recordToSave);
-    } else {
-      await apiClient.post(`/diet-logs`, recordToSave);
-    }
-    await fetchDietData();
-  } catch (error) {
-    console.error('식단 기록 저장 실패:', error);
-    alert('식단 기록 저장에 실패했습니다.');
-  }
+const handleSaveSuccess = async () => {
+  await fetchDietData();
 };
 
 const handleDelete = async (id) => {

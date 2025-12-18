@@ -1,9 +1,12 @@
 <template>
   <div class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-[1.01]">
     <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">오늘의 식단</h2>
-        <span class="text-sm text-gray-500">타임라인</span>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-bold text-gray-900">오늘 기록한 식사</h2>
+        <div class="flex items-baseline gap-1">
+          <span class="text-3xl font-bold text-orange-600">{{ meals.length }}</span>
+          <span class="text-xl font-medium text-gray-600">회</span>
+        </div>
       </div>
 
       <div class="space-y-4">
