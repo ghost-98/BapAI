@@ -1,36 +1,37 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
-// Layout
+// Layout (상단 네비게이션)
 import MainLayout from '../layouts/MainLayout.vue'
 
-// Main Pages (within MainLayout)
-import HomePage from '../pages/HomePage.vue'
-import DietPage from '../pages/diet/DietPage.vue'
-import BoardPage from '../pages/board/BoardPage.vue'
-import BoardDetailPage from '../pages/board/BoardDetailPage.vue'
-import BoardWritePage from '../pages/board/BoardWritePage.vue'
-import MyInfoPage from '../pages/profile/MyInfoPage.vue'
-import GroupListPage from '../pages/group/GroupListPage.vue'
-import GroupDetailPage from '../pages/group/GroupDetailPage.vue'
+// 메인 페이지 (기능별)
+import HomePage from '../features/home/pages/HomePage.vue'
+import DietPage from '../features/diet/pages/DietPage.vue'
+import BoardPage from '../features/board/pages/BoardPage.vue'
+import BoardDetailPage from '../features/board/pages/BoardDetailPage.vue'
+import BoardWritePage from '../features/board/pages/BoardWritePage.vue'
+import MyInfoPage from '../features/user/pages/MyInfoPage.vue'
+import GroupListPage from '../features/group/pages/GroupListPage.vue'
+import GroupDetailPage from '../features/group/pages/GroupDetailPage.vue'
 
-// Auth & Fullscreen Pages
-import LoginPage from '../pages/auth/LoginPage.vue'
-import SignupPage from '../pages/auth/SignupPage.vue'
-import AdditionalInfoPage from '../pages/auth/AdditionalInfoPage.vue'
-import FindUsernamePage from '../pages/auth/FindUsernamePage.vue'
-import FindPasswordPage from '../pages/auth/FindPasswordPage.vue'
-import ConfirmPasswordPage from '../pages/auth/ConfirmPasswordPage.vue'
-import EditProfilePage from '../pages/profile/EditProfilePage.vue'
-import ChangePasswordPage from '../pages/profile/ChangePasswordPage.vue'
+// Auth 관련 페이지
+import LoginPage from '../features/auth/pages/LoginPage.vue'
+import SignupPage from '../features/auth/pages/SignupPage.vue'
+import AdditionalInfoPage from '../features/auth/pages/AdditionalInfoPage.vue'
+import FindUsernamePage from '../features/auth/pages/FindUsernamePage.vue'
+import FindPasswordPage from '../features/auth/pages/FindPasswordPage.vue'
+import ConfirmPasswordPage from '../features/auth/pages/ConfirmPasswordPage.vue'
+import EditProfilePage from '../features/user/pages/EditProfilePage.vue'
+import ChangePasswordPage from '../features/user/pages/ChangePasswordPage.vue'
 
-// Social Login Callbacks
-import NaverCallbackPage from '../pages/auth/callback/NaverCallbackPage.vue'
-import KakaoCallbackPage from '../pages/auth/callback/KakaoCallbackPage.vue'
-import GoogleCallbackPage from '../pages/auth/callback/GoogleCallbackPage.vue'
-import GithubCallbackPage from '../pages/auth/callback/GithubCallbackPage.vue'
+// 소셜 로그인 콜백 페이지
+import NaverCallbackPage from '../features/auth/pages/callback/NaverCallbackPage.vue'
+import KakaoCallbackPage from '../features/auth/pages/callback/KakaoCallbackPage.vue'
+import GoogleCallbackPage from '../features/auth/pages/callback/GoogleCallbackPage.vue'
+import GithubCallbackPage from '../features/auth/pages/callback/GithubCallbackPage.vue'
 
 
-// --- Route Definitions ---
+// -- Route 정의
 
 const mainRoutes = {
   path: '/',
@@ -58,7 +59,7 @@ const authRoutes = [
   { path: '/find-username', name: 'FindUsername', component: FindUsernamePage },
   { path: '/find-password', name: 'FindPassword', component: FindPasswordPage },
   { path: '/confirm-password', name: 'ConfirmPassword', component: ConfirmPasswordPage, meta: { requiresAuth: true } },
-  // Social Callbacks
+  // 소셜 콜백
   { path: '/auth/naver/callback', name: 'NaverCallback', component: NaverCallbackPage },
   { path: '/auth/kakao/callback', name: 'KakaoCallback', component: KakaoCallbackPage },
   { path: '/auth/google/callback', name: 'GoogleCallback', component: GoogleCallbackPage },
@@ -68,7 +69,6 @@ const authRoutes = [
 const routes = [
   mainRoutes,
   ...authRoutes,
-  // Catch-all route can be added here if needed
   // { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFoundPage },
 ];
 
@@ -78,88 +78,82 @@ const router = createRouter({
 })
 
 
-// --- Navigation Guards ---
+// -- 네비게이션 가드
 
-const handleTempPassword = (to, isTempPasswordLogin) => {
-  if (isTempPasswordLogin && to.name !== 'ChangePassword') {
-    // Allow logout, but force password change for everything else
-    if (to.name !== 'Logout' && to.name !== 'Login') {
-        sessionStorage.setItem('isReauthenticated', 'true'); // Consider re-authenticated for password change
-        return { name: 'ChangePassword' };
-    }
-  }
-  return null;
-};
+router.beforeEach((to, from) => {
+  const authStore = useAuthStore();
 
-const handleUnauthenticated = (to, isLoggedIn) => {
-  if (to.meta.requiresAuth && !isLoggedIn) {
-    alert('로그인이 필요합니다.');
-    return { name: 'Login' };
-  }
-  return null;
-};
-
-const handleLoggedIn = (to, isLoggedIn) => {
-    if (isLoggedIn && (to.name === 'Login' || to.name === 'Signup')) {
-        return { path: '/' };
+  const handleTempPassword = (to) => {
+    if (authStore.isTempPasswordLogin && to.name !== 'ChangePassword') {
+      if (to.name !== 'Logout' && to.name !== 'Login') {
+          authStore.setReauthenticated(true);
+          return { name: 'ChangePassword' };
+      }
     }
     return null;
-}
+  };
 
-const handleReauthentication = (to, isReauthenticated) => {
-  if (to.meta.requiresReauth && !isReauthenticated) {
-    alert('보안을 위해 비밀번호를 다시 확인해야 합니다.');
-    return { name: 'ConfirmPassword', query: { redirect: to.path } };
-  }
-  return null;
-};
-
-const handleMultiStepSignup = (to, from, firstStepCompleted) => {
-  if (to.name === 'AdditionalInfo' && !firstStepCompleted) {
-    alert('잘못된 접근입니다. 회원가입을 먼저 진행해주세요.');
-    return { name: 'Signup' };
-  }
-  return null;
-};
-
-const cleanupSessionFlags = (to, from) => {
-    // Clean up reauth flag after navigating to the intended page
-    if (sessionStorage.getItem('isReauthenticated') === 'true' && to.meta.requiresReauth) {
-        sessionStorage.removeItem('isReauthenticated');
+  const handleUnauthenticated = (to) => {
+    if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+      alert('로그인이 필요합니다.');
+      return { name: 'Login' };
     }
-    // Clean up signup flag after leaving the additional info page
-    if (from.name === 'AdditionalInfo' && sessionStorage.getItem('firstStepCompleted') === 'true') {
-        sessionStorage.removeItem('firstStepCompleted');
+    return null;
+  };
+
+  const handleLoggedIn = (to) => {
+      if (authStore.isLoggedIn && (to.name === 'Login' || to.name === 'Signup')) {
+          return { path: '/' };
+      }
+      return null;
+  }
+
+  const handleReauthentication = (to) => {
+    if (to.meta.requiresReauth && !authStore.isReauthenticated) {
+      alert('보안을 위해 비밀번호를 다시 확인해야 합니다.');
+      return { name: 'ConfirmPassword', query: { redirect: to.path } };
     }
-}
+    return null;
+  };
 
-router.beforeEach((to, from, next) => {
-  const isLoggedIn = !!(localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken'));
-  const isTempPasswordLogin = sessionStorage.getItem('isTempPasswordLogin') === 'true';
-  const isReauthenticated = sessionStorage.getItem('isReauthenticated') === 'true';
-  const firstStepCompleted = sessionStorage.getItem('firstStepCompleted') === 'true';
+  const handleMultiStepSignup = (to) => {
+    if (to.name === 'AdditionalInfo' && !authStore.firstStepCompleted) {
+      alert('잘못된 접근입니다. 회원가입을 먼저 진행해주세요.');
+      return { name: 'Signup' };
+    }
+    return null;
+  };
 
-  // Execute guards in order of priority
-  let redirect = handleTempPassword(to, isTempPasswordLogin);
-  if (redirect) return next(redirect);
+  const cleanupSessionFlags = (to, from) => {
+      // Clean up reauth flag after navigating to the intended page
+      // authStore.setReauthenticated(false); // Removed to allow reauthentication to persist for the session
+      // Clean up signup flag after leaving the additional info page
+      if (from.name === 'AdditionalInfo' && authStore.firstStepCompleted) {
+          authStore.setFirstStepCompleted(false);
+      }
+  }
 
-  redirect = handleUnauthenticated(to, isLoggedIn);
-  if (redirect) return next(redirect);
+  // 우선순위에 따라 가드 실행
+  let redirect = handleTempPassword(to);
+  if (redirect) return redirect;
 
-  redirect = handleLoggedIn(to, isLoggedIn);
-  if (redirect) return next(redirect);
+  redirect = handleUnauthenticated(to);
+  if (redirect) return redirect;
 
-  redirect = handleReauthentication(to, isReauthenticated);
-  if (redirect) return next(redirect);
+  redirect = handleLoggedIn(to);
+  if (redirect) return redirect;
 
-  redirect = handleMultiStepSignup(to, from, firstStepCompleted);
-  if (redirect) return next(redirect);
+  redirect = handleReauthentication(to);
+  if (redirect) return redirect;
+
+  redirect = handleMultiStepSignup(to);
+  if (redirect) return redirect;
 
   // Cleanup flags after checks
   cleanupSessionFlags(to, from);
 
   // If no redirects, proceed
-  next();
+  return true; // Proceed with navigation
 });
 
 export default router;

@@ -1,7 +1,11 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 relative overflow-hidden">
+    <!-- Decorative Blobs -->
+    <div class="absolute top-0 -right-1/4 w-1/2 h-1/2 bg-gradient-to-br from-orange-200/50 to-rose-200/50 rounded-full blur-3xl -z-10"></div>
+    <div class="absolute -bottom-1/4 left-1/4 w-1/3 h-1/3 bg-gradient-to-tr from-amber-200/50 to-orange-200/50 rounded-full blur-3xl -z-10"></div>
+
     <!-- Navigation -->
-    <nav class="border-b border-gray-200 bg-white/80 backdrop-blur-xl sticky top-0 z-30">
+    <nav class="border-b border-white/50 bg-white/40 backdrop-blur-sm sticky top-0 z-30">
       <div class="mx-auto max-w-7xl px-6">
         <div class="flex items-center justify-between h-16">
           <!-- Logo -->
@@ -83,22 +87,27 @@
     </nav>
 
     <!-- Page Content -->
-    <main class="flex-1">
+    <main class="flex-1 relative z-10">
       <router-view />
     </main>
+
+    <!-- Global Notification Display -->
+    <NotificationDisplay />
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import apiClient from '../api'
 import { UserCircle, ChevronDown, LogOut, Settings } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth' // Import auth store
+import NotificationDisplay from '@/components/common/NotificationDisplay.vue' // Import NotificationDisplay
 
 const router = useRouter()
+const authStore = useAuthStore() // Instantiate auth store
 
 const userName = ref(null)
-const isLoggedIn = computed(() => !!(localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken')))
+const isLoggedIn = computed(() => authStore.isLoggedIn) // Use auth store's isLoggedIn getter
 
 const isDropdownOpen = ref(false)
 const dropdownContainer = ref(null)
@@ -118,7 +127,8 @@ const handleClickOutside = (event) => {
 }
 
 onMounted(() => {
-  userName.value = localStorage.getItem('name') || sessionStorage.getItem('name')
+  // Get user name from auth store or local/session storage
+  userName.value = authStore.userName || localStorage.getItem('name') || sessionStorage.getItem('name')
   document.addEventListener('mousedown', handleClickOutside)
 })
 
@@ -128,23 +138,6 @@ onBeforeUnmount(() => {
 
 const handleLogout = async () => {
   closeDropdown()
-  console.log('로그아웃 처리')
-  
-  try {
-    const refreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken')
-    if (refreshToken) {
-      await apiClient.post('/auth/logout', { refreshToken })
-    }
-  } catch (error) {
-    console.error('로그아웃 API 호출 실패:', error.response ? error.response.data : error.message)
-  } finally {
-    localStorage.clear()
-    sessionStorage.clear()
-    userName.value = null
-    
-    router.replace({ path: '/login', query: { logged_out: 'true' } })
-  }
+  await authStore.logout()
 }
 </script>
-
-

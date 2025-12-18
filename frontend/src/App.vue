@@ -1,6 +1,11 @@
 <template>
   <router-view />
+  <NotificationDisplay />
 </template>
+
+<script setup>
+import NotificationDisplay from './components/common/NotificationDisplay.vue';
+</script>
 
 <style>
 * {
