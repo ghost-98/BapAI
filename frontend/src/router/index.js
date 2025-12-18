@@ -125,8 +125,6 @@ router.beforeEach((to, from) => {
   };
 
   const cleanupSessionFlags = (to, from) => {
-      // Clean up reauth flag after navigating to the intended page
-      // authStore.setReauthenticated(false); // Removed to allow reauthentication to persist for the session
       // Clean up signup flag after leaving the additional info page
       if (from.name === 'AdditionalInfo' && authStore.firstStepCompleted) {
           authStore.setFirstStepCompleted(false);

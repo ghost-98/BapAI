@@ -49,15 +49,20 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Lock } from 'lucide-vue-next'
 import apiClient from '../../../api'
+import { useAuthStore } from '../../../stores/auth' // 1. 스토어 임포트
 
 const router = useRouter()
 const route = useRoute()
 const password = ref('')
+const authStore = useAuthStore() // 스토어 인스턴스 생성
 
 const handleConfirm = async () => {
   try {
     await apiClient.post('/members/check-password', { password: password.value })
-    sessionStorage.setItem('isReauthenticated', 'true')
+    
+    // 2. sessionStorage를 직접 조작하는 대신, 스토어의 액션을 호출
+    authStore.setReauthenticated(true)
+
     const redirectPath = route.query.redirect || '/'
     router.push(redirectPath)
   } catch (error) {

@@ -13,8 +13,8 @@ export const useUserStore = defineStore('user', () => {
   const weight = ref(null);
   const diet_goal = ref(null);
   const activity_level = ref(null);
-  const disease_codes = ref([]);
-  const allergy_codes = ref([]);
+  const diseaseIds = ref([]); // Changed from disease_codes
+  const allergyIds = ref([]); // Changed from allergy_codes
   const isLoading = ref(false);
 
   // Getters
@@ -48,8 +48,8 @@ export const useUserStore = defineStore('user', () => {
       weight.value = userData.weight;
       diet_goal.value = userData.diet_goal;
       activity_level.value = userData.activity_level;
-      disease_codes.value = userData.disease_codes || [];
-      allergy_codes.value = userData.allergy_codes || [];
+      diseaseIds.value = userData.diseaseIds || []; // Changed
+      allergyIds.value = userData.allergyIds || []; // Changed
       return userData;
     } catch (error) {
       console.error('사용자 프로필 불러오기 실패:', error);
@@ -63,8 +63,8 @@ export const useUserStore = defineStore('user', () => {
     isLoading.value = true;
     try {
       await apiClient.patch('/members/me', payload);
-      // Optionally refetch or update local state based on payload
-      await fetchUserProfile(); // Re-fetch to ensure state is up-to-date
+      // Re-fetch to ensure state is up-to-date
+      await fetchUserProfile();
     } catch (error) {
       console.error('사용자 프로필 업데이트 실패:', error);
       throw error;
@@ -83,8 +83,8 @@ export const useUserStore = defineStore('user', () => {
     weight.value = null;
     diet_goal.value = null;
     activity_level.value = null;
-    disease_codes.value = [];
-    allergy_codes.value = [];
+    diseaseIds.value = []; // Changed
+    allergyIds.value = []; // Changed
   };
 
   return {
@@ -97,8 +97,8 @@ export const useUserStore = defineStore('user', () => {
     weight,
     diet_goal,
     activity_level,
-    disease_codes,
-    allergy_codes,
+    diseaseIds, // Changed
+    allergyIds, // Changed
     isLoading,
     genderText,
     dietGoalText,

@@ -58,13 +58,13 @@
           <div>
             <p class="text-sm font-semibold text-gray-600 mb-2">보유 질환</p>
             <div class="text-gray-800 bg-gray-50/50 p-4 rounded-lg text-sm min-h-[4rem]">
-              {{ userStore.disease_codes.length ? userStore.disease_codes.join(', ') : '없음' }}
+              {{ diseaseNames.length ? diseaseNames.join(', ') : '없음' }}
             </div>
           </div>
           <div>
-            <p class="text-sm font-semibold text-gray-600 mb-2">알러지</p>
+            <p class="text-sm font-semibold text-gray-600 mb-2">알레르기</p>
             <div class="text-gray-800 bg-gray-50/50 p-4 rounded-lg text-sm min-h-[4rem]">
-              {{ userStore.allergy_codes.length ? userStore.allergy_codes.join(', ') : '없음' }}
+              {{ allergyNames.length ? allergyNames.join(', ') : '없음' }}
             </div>
           </div>
         </div>
@@ -95,32 +95,52 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import apiClient from '../../../api'
 import { useUserStore } from '../../../stores/user'
 import { useAuthStore } from '../../../stores/auth'
+import { useOptionsStore } from '../../../stores/options'
 
 const router = useRouter()
-const userStore = useUserStore() // userStore 사용
-const authStore = useAuthStore() // authStore 사용
+const userStore = useUserStore()
+const authStore = useAuthStore()
+const optionsStore = useOptionsStore()
+
+const diseaseNames = computed(() => {
+  if (!userStore.diseaseIds || !optionsStore.diseases.length) return [];
+  const diseaseMap = new Map(optionsStore.diseases.map(d => [d.id, d.name]));
+  return userStore.diseaseIds.map(id => diseaseMap.get(id)).filter(Boolean);
+});
+
+const allergyNames = computed(() => {
+  if (!userStore.allergyIds || !optionsStore.allergies.length) return [];
+  const allergyMap = new Map(optionsStore.allergies.map(a => [a.id, a.name]));
+  return userStore.allergyIds.map(id => allergyMap.get(id)).filter(Boolean);
+});
 
 onMounted(async () => {
   try {
-    await userStore.fetchUserProfile()
+    const optionsPromise = apiClient.get('/members/options').then(res => {
+      optionsStore.setOptions(res.data.diseases, res.data.allergies);
+    });
+    const userProfilePromise = userStore.fetchUserProfile();
+    
+    await Promise.all([optionsPromise, userProfilePromise]);
+
   } catch (error) {
-    console.error('사용자 정보 로딩 실패:', error)
+    console.error('사용자 정보 또는 옵션 로딩 실패:', error)
     alert('사용자 정보를 불러오는 데 실패했습니다.')
     router.push('/login')
   }
 })
 
 const goToEditProfile = () => {
-  router.push({ path: '/confirm-password', query: { redirect: '/edit-profile' } })
+  router.push('/edit-profile');
 }
 
 const goToChangePassword = () => {
-  router.push({ path: '/confirm-password', query: { redirect: '/change-password' } })
+  router.push('/change-password');
 }
 
 const handleDeleteAccount = async () => {
