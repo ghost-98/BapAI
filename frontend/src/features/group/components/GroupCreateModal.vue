@@ -73,8 +73,8 @@
         <button type="button" @click="$emit('close')" class="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-all font-semibold">
           취소
         </button>
-        <button type="submit" @click="createGroup" class="px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all font-semibold shadow-lg shadow-orange-500/30">
-          생성하기
+        <button type="submit" @click="createGroup" :disabled="isLoading" class="px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all font-semibold shadow-lg shadow-orange-500/30">
+          {{ isLoading ? '생성 중...' : '생성하기' }}
         </button>
       </div>
     </div>
@@ -84,6 +84,13 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import { X } from 'lucide-vue-next';
+
+const props = defineProps({
+  isLoading: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 const emit = defineEmits(['close', 'create']);
 
@@ -123,6 +130,6 @@ const createGroup = () => {
     return;
   }
   emit('create', { ...group });
-  emit('close');
+  // emit('close'); // Parent will close on success
 };
 </script>

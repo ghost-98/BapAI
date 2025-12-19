@@ -139,16 +139,20 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { PlusCircle, Users, Search, X } from 'lucide-vue-next'
 import GroupCreateModal from '@/features/group/components/GroupCreateModal.vue'
-import { fetchGroups } from '@/api' // Import the new API function
+import { fetchGroups, createGroupApi } from '@/api' // Import the new API function
+import { useNotificationStore } from '@/stores/notification' // Import notification store
 
 const router = useRouter()
 const activeTab = ref('all')
 const isCreateModalVisible = ref(false)
+const isLoadingCreate = ref(false) // Loading state for group creation
 
 const searchQuery = ref('')
 const selectedTags = ref([])
 const allGroups = ref([]) // Will be populated by API
 const myGroups = ref([]) // Will be populated by API or filtered from allGroups
+
+const notificationStore = useNotificationStore()
 
 // Mock current user ID for demonstration. Replace with actual auth store user ID.
 const currentUserId = 1; 
@@ -189,6 +193,7 @@ const fetchAllGroups = async () => {
     }));
   } catch (error) {
     console.error('Failed to fetch groups:', error);
+    notificationStore.showNotification('그룹 목록을 불러오는데 실패했습니다.', 'error');
     allGroups.value = []; // Clear groups on error
   }
 };
@@ -205,6 +210,7 @@ const fetchMyGroups = async () => {
     console.log('Filtered my groups:', myGroups.value);
   } catch (error) {
     console.error('Failed to fetch my groups:', error);
+    notificationStore.showNotification('내가 가입한 그룹 목록을 불러오는데 실패했습니다.', 'error');
     myGroups.value = [];
   }
 };
@@ -238,21 +244,33 @@ const closeCreateModal = () => {
 }
 
 const handleCreateGroup = async (newGroupData) => {
-  // In a real application, you would call an API to create the group
-  // For now, we'll simulate adding it and then refetching
-  console.log('Simulating group creation:', newGroupData);
-  const newGroup = {
-    id: Date.now(), // 임시 ID
-    memberCount: 1,
-    memberIds: [currentUserId], // Assume current user joins the group
-    ...newGroupData
+  isLoadingCreate.value = true;
+  notificationStore.hideNotification(); // Clear previous notifications
+
+  try {
+    const createdGroup = await createGroupApi(newGroupData); // Call the API
+    console.log('Group created successfully:', createdGroup);
+    
+    // Add the created group to allGroups and myGroups
+    // Assuming the API returns the full group object including ID, memberCount, etc.
+    allGroups.value.unshift({
+      ...createdGroup,
+      isJoined: true // The creator is joined by default
+    });
+    myGroups.value.unshift({
+      ...createdGroup,
+      isJoined: true
+    });
+
+    notificationStore.showNotification('새 그룹이 성공적으로 생성되었습니다!', 'success');
+    closeCreateModal(); // Close the modal on success
+    activeTab.value = 'my'; // Optionally, switch to 'my' tab
+  } catch (error) {
+    console.error('Failed to create group:', error);
+    notificationStore.showNotification('그룹 생성에 실패했습니다. 다시 시도해주세요.', 'error');
+  } finally {
+    isLoadingCreate.value = false;
   }
-  allGroups.value.unshift(newGroup);
-  myGroups.value.unshift(newGroup); // Add to myGroups as well
-  // After creation, refetch all groups to include the new one and apply filters
-  // await fetchAllGroups(); // No need to refetch all if we add it manually
-  // Optionally, switch to 'my' tab if the user automatically joins the created group
-  activeTab.value = 'my'; 
 }
 
 const goToGroupDetail = (groupId) => {

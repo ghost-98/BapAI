@@ -149,4 +149,14 @@ export const updateGroup = async (groupId, groupData) => {
   }
 };
 
+export const createGroupApi = async (groupData) => {
+  try {
+    const response = await apiClient.post('/groups', groupData);
+    return response.data;
+  } catch (error) {
+    console.error('그룹 생성 실패:', error);
+    throw error;
+  }
+};
+
 export default apiClient
