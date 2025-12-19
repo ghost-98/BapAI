@@ -52,16 +52,16 @@
             <!-- Max Members -->
             <div>
               <label for="max-members" class="block text-sm font-semibold text-gray-700 mb-2">최대 인원 <span class="text-red-500">*</span></label>
-              <input type="number" id="max-members" v-model.number="group.maxMembers" min="2" max="100" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" :class="{'border-red-500': group.maxMembers < 2 && formSubmitted}">
-              <p v-if="group.maxMembers < 2 && formSubmitted" class="text-red-500 text-xs mt-1">최대 인원은 2명 이상이어야 합니다.</p>
+              <input type="number" id="max-members" v-model.number="group.maxMember" min="2" max="100" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" :class="{'border-red-500': group.maxMember < 2 && formSubmitted}">
+              <p v-if="group.maxMember < 2 && formSubmitted" class="text-red-500 text-xs mt-1">최대 인원은 2명 이상이어야 합니다.</p>
             </div>
 
             <!-- Public/Private -->
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-2">공개 설정</label>
               <div class="flex items-center gap-2 bg-gray-100 p-1.5 rounded-xl">
-                  <button type="button" @click="group.isPublic = true" :class="['w-1/2 py-2.5 rounded-lg font-semibold text-sm transition-all', group.isPublic ? 'bg-white text-orange-600 shadow' : 'text-gray-600']">공개</button>
-                  <button type="button" @click="group.isPublic = false" :class="['w-1/2 py-2.5 rounded-lg font-semibold text-sm transition-all', !group.isPublic ? 'bg-white text-orange-600 shadow' : 'text-gray-600']">비공개</button>
+                  <button type="button" @click="group.type = 'PUBLIC'" :class="['w-1/2 py-2.5 rounded-lg font-semibold text-sm transition-all', group.type === 'PUBLIC' ? 'bg-white text-orange-600 shadow' : 'text-gray-600']">공개</button>
+                  <button type="button" @click="group.type = 'PRIVATE'" :class="['w-1/2 py-2.5 rounded-lg font-semibold text-sm transition-all', group.type === 'PRIVATE' ? 'bg-white text-orange-600 shadow' : 'text-gray-600']">비공개</button>
               </div>
             </div>
           </div>
@@ -82,8 +82,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue'; // Import onMounted
 import { X } from 'lucide-vue-next';
+import { fetchAvailableTags } from '@/api'; // Import fetchAvailableTags
+import { useNotificationStore } from '@/stores/notification'; // Import notification store
 
 const props = defineProps({
   isLoading: {
@@ -94,21 +96,21 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'create']);
 
+const notificationStore = useNotificationStore(); // Initialize notification store
+
 const group = reactive({
   name: '',
   description: '',
   tags: [],
-  maxMembers: 10,
-  isPublic: true,
+  maxMember: 10,
+  type: 'PUBLIC', // Changed from isPublic: true to type: 'PUBLIC'
 });
 
 const formSubmitted = ref(false); // New state to track form submission for validation messages
 
-const availableTags = ref([
-  '다이어트', '아토피', '저탄고지', '비건', '운동', '레시피',
-  '당뇨', '고혈압', '키토제닉', '간헐적단식', '식단일기', '체중감량',
-  '근력증가', '유지어터', '프로필준비', '대회준비', '산후조리', '이유식'
-]);
+const availableTags = ref([]); // Dynamically fetched tags
+
+// Removed hardcoded availableTags
 
 const toggleTag = (tag) => {
   const index = group.tags.indexOf(tag);
@@ -117,7 +119,8 @@ const toggleTag = (tag) => {
   } else if (group.tags.length < 3) {
     group.tags.push(tag);
   } else {
-    alert('태그는 최대 3개까지 선택할 수 있습니다.');
+    // alert('태그는 최대 3개까지 선택할 수 있습니다.');
+    notificationStore.showNotification('태그는 최대 3개까지 선택할 수 있습니다.', 'warning');
   }
 };
 
@@ -125,11 +128,22 @@ const createGroup = () => {
   formSubmitted.value = true; // Set form as submitted to show validation messages
 
   // Basic validation
-  if (!group.name.trim() || !group.description.trim() || group.tags.length === 0 || group.maxMembers < 2) {
-    // alert('모든 필수 필드를 입력하고 태그를 선택해주세요.'); // Removed alert for better UX
+  if (!group.name.trim() || !group.description.trim() || group.tags.length === 0 || group.maxMember < 2) {
+    notificationStore.showNotification('모든 필수 필드를 입력하고 태그를 선택해주세요. 최대 인원은 2명 이상이어야 합니다.', 'error');
     return;
   }
   emit('create', { ...group });
   // emit('close'); // Parent will close on success
 };
+
+// Fetch available tags on component mount
+onMounted(async () => {
+  try {
+    const response = await fetchAvailableTags();
+    availableTags.value = response;
+  } catch (error) {
+    console.error('Failed to fetch available tags for GroupCreateModal:', error);
+    notificationStore.showNotification('태그 목록을 불러오는데 실패했습니다.', 'error');
+  }
+});
 </script>

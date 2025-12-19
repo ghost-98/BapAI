@@ -8,7 +8,7 @@
         <h2 class="text-2xl font-bold text-gray-800 mb-4">그룹 정보</h2>
         <div class="space-y-3 text-sm">
           <div class="flex justify-between"><span class="font-semibold text-gray-600">상태</span><span :class="['font-bold', group.isPublic ? 'text-blue-600' : 'text-gray-800']">{{ group.isPublic ? '공개' : '비공개' }}</span></div>
-          <div class="flex justify-between"><span class="font-semibold text-gray-600">멤버</span><span class="font-bold text-gray-800">{{ group.memberCount }} / {{ group.maxMembers }} 명</span></div>
+          <div class="flex justify-between"><span class="font-semibold text-gray-600">멤버</span><span class="font-bold text-gray-800">{{ group.memberCount }} / {{ group.maxMember }} 명</span></div>
           <div class="flex justify-between"><span class="font-semibold text-gray-600">개설일</span><span class="font-bold text-gray-800">{{ group.createdAt }}</span></div>
         </div>
         <button class="mt-6 w-full px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center justify-center gap-2"><Users class="w-5 h-5" /><span>그룹 초대</span></button>

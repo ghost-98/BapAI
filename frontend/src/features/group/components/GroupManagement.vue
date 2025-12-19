@@ -43,8 +43,8 @@
           <!-- Max Members -->
           <div>
             <label for="edit-max-members" class="block text-sm font-semibold text-gray-700 mb-2">최대 인원 <span class="text-red-500">*</span></label>
-            <input type="number" id="edit-max-members" v-model.number="editableGroup.maxMembers" min="2" max="100" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" :class="{'border-red-500': editableGroup.maxMembers < 2 && formSubmitted}">
-            <p v-if="editableGroup.maxMembers < 2 && formSubmitted" class="text-red-500 text-xs mt-1">최대 인원은 2명 이상이어야 합니다.</p>
+            <input type="number" id="edit-max-members" v-model.number="editableGroup.maxMember" min="2" max="100" required class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800" :class="{'border-red-500': editableGroup.maxMember < 2 && formSubmitted}">
+            <p v-if="editableGroup.maxMember < 2 && formSubmitted" class="text-red-500 text-xs mt-1">최대 인원은 2명 이상이어야 합니다.</p>
           </div>
 
           <!-- Public/Private -->
@@ -105,7 +105,7 @@ const toggleTag = (tag) => {
 const submitUpdate = () => {
   formSubmitted.value = true;
 
-  if (!editableGroup.name.trim() || !editableGroup.description.trim() || editableGroup.tags.length === 0 || editableGroup.maxMembers < 2) {
+  if (!editableGroup.name.trim() || !editableGroup.description.trim() || editableGroup.tags.length === 0 || editableGroup.maxMember < 2) {
     return;
   }
   emit('update-group', { ...editableGroup });

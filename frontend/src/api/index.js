@@ -159,4 +159,24 @@ export const createGroupApi = async (groupData) => {
   }
 };
 
+export const joinGroupApi = async (groupId) => {
+  try {
+    const response = await apiClient.post(`/groups/${groupId}/join`);
+    return response.data;
+  } catch (error) {
+    console.error('그룹 참여 실패:', error);
+    throw error;
+  }
+};
+
+export const fetchAvailableTags = async () => {
+  try {
+    const response = await apiClient.get('/groups/tags');
+    return response.data;
+  } catch (error) {
+    console.error('사용 가능한 태그 불러오기 실패:', error);
+    throw error;
+  }
+};
+
 export default apiClient

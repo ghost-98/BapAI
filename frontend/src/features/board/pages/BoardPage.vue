@@ -95,7 +95,7 @@
             <span class="text-sm text-gray-500 flex-shrink-0">{{ formatDate(post.createdAt) }}</span>
           </div>
           <div class="mb-3 h-48 overflow-hidden rounded-lg bg-gray-100 flex items-center justify-center">
-            <img v-if="post.imgUrl" :src="`${IMAGE_BASE_URL}${post.imgUrl}`" alt="게시글 이미지" class="w-full h-full object-cover">
+            <img v-if="post.imgUrl" :src="`${post.imgUrl}`" alt="게시글 이미지" class="w-full h-full object-cover">
             <ImageIcon v-else class="w-16 h-16 text-gray-400" />
           </div>
           <p class="text-gray-600 mb-3 truncate">
