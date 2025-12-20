@@ -129,12 +129,32 @@ export const getAIDietReport = async (date) => {
   }
 };
 
+export const analyzeFood = async (formData) => {
+  try {
+    const response = await apiClientForMultipart.post('/ai/analyze', formData);
+    return response.data;
+  } catch (error) {
+    console.error('음식 분석 실패:', error);
+    throw error;
+  }
+};
+
 export const fetchGroups = async (params) => {
   try {
     const response = await apiClient.get(`/groups`, { params });
     return response.data;
   } catch (error) {
     console.error('그룹 불러오기 실패:', error);
+    throw error;
+  }
+};
+
+export const fetchGroupById = async (groupId) => {
+  try {
+    const response = await apiClient.get(`/groups/${groupId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`그룹 ${groupId} 불러오기 실패:`, error);
     throw error;
   }
 };
@@ -175,6 +195,57 @@ export const fetchAvailableTags = async () => {
     return response.data;
   } catch (error) {
     console.error('사용 가능한 태그 불러오기 실패:', error);
+    throw error;
+  }
+};
+
+// Group Board API calls
+export const fetchGroupBoards = async (groupId, params) => {
+  try {
+    const response = await apiClient.get(`/groups/${groupId}/boards`, { params });
+    return response.data;
+  } catch (error) {
+    console.error(`그룹 ${groupId}의 게시물을 불러오는 데 실패했습니다:`, error);
+    throw error;
+  }
+};
+
+export const fetchGroupBoardById = async (groupId, boardId) => {
+  try {
+    const response = await apiClient.get(`/groups/${groupId}/boards/${boardId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`그룹 ${groupId}의 게시물 ${boardId}를 불러오는 데 실패했습니다:`, error);
+    throw error;
+  }
+};
+
+export const createGroupBoard = async (groupId, boardData) => {
+  try {
+    const response = await apiClient.post(`/groups/${groupId}/boards`, boardData);
+    return response.data;
+  } catch (error) {
+    console.error(`그룹 ${groupId}에 게시물 생성 실패:`, error);
+    throw error;
+  }
+};
+
+export const updateGroupBoard = async (groupId, boardId, boardData) => {
+  try {
+    const response = await apiClient.put(`/groups/${groupId}/boards/${boardId}`, boardData);
+    return response.data;
+  } catch (error) {
+    console.error(`그룹 ${groupId}의 게시물 ${boardId} 업데이트 실패:`, error);
+    throw error;
+  }
+};
+
+export const deleteGroupBoard = async (groupId, boardId) => {
+  try {
+    const response = await apiClient.delete(`/groups/${groupId}/boards/${boardId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`그룹 ${groupId}의 게시물 ${boardId} 삭제 실패:`, error);
     throw error;
   }
 };

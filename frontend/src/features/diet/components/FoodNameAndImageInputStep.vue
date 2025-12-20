@@ -26,10 +26,9 @@
 
 <script setup>
 import { ref } from 'vue';
-import apiClient from '../../../api';
 import { useNotificationStore } from '../../../stores/notification';
 
-const emit = defineEmits(['food-and-image-provided']);
+const emit = defineEmits(['data-provided']);
 
 const notificationStore = useNotificationStore();
 
@@ -55,26 +54,10 @@ const submitFoodAndImage = async () => {
     notificationStore.showNotification('음식명을 입력해주세요.', 'error');
     return;
   }
-  if (!selectedImage.value) {
-    notificationStore.showNotification('이미지를 선택해주세요.', 'error');
-    return;
-  }
-
-  isLoading.value = true;
-  notificationStore.hideNotification();
-
-  try {
-    const response = await apiClient.get('/food/nutrition-info', {
-      params: { foodName: foodNameInput.value.trim() }
-    });
-    // { foodName, calories, carbs, protein, fat }
-    emit('food-and-image-provided', { foodData: response.data, imageFile: selectedImage.value });
-    notificationStore.showNotification('영양 정보 조회 및 이미지 첨부 완료!', 'success');
-  } catch (err) {
-    console.error('음식명 영양 정보 조회 실패:', err);
-    notificationStore.showNotification('입력하신 음식에 대한 정보를 찾을 수 없습니다. 다시 확인해주세요.', 'error');
-  } finally {
-    isLoading.value = false;
-  }
+  // 이미지 선택은 필수가 아닐 수 있으므로, 없어도 전송
+  emit('data-provided', { 
+    foodName: foodNameInput.value.trim(), 
+    imageFile: selectedImage.value 
+  });
 };
 </script>

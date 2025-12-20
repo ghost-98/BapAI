@@ -137,7 +137,7 @@ import { Users, LayoutDashboard, MessageSquare, Trophy, ShieldCheck, Loader2, Al
 import GroupBoard from '../components/GroupBoard.vue';
 import GroupDashboard from '@/features/group/components/GroupDashboard.vue';
 import GroupManagement from '@/features/group/components/GroupManagement.vue'; // New import
-import { fetchGroups, updateGroup } from '@/api'; // Import fetchGroups and updateGroup
+import { fetchGroupById, updateGroup } from '@/api'; // Import fetchGroupById and updateGroup
 import { useNotificationStore } from '@/stores/notification'; // Import notification store
 
 const route = useRoute();
@@ -174,8 +174,8 @@ const fetchGroupDetails = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await fetchGroups({ id: groupId.value });
-    group.value = Array.isArray(response) ? response.find(g => g.id == groupId.value) : response;
+    const response = await fetchGroupById(groupId.value); // fetchGroupById 사용
+    group.value = response; // 단일 그룹 객체이므로 바로 할당
     if (!group.value) {
       error.value = '그룹을 찾을 수 없습니다.';
     }

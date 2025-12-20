@@ -12,10 +12,9 @@
 
 <script setup>
 import { ref } from 'vue';
-import apiClient from '../../../api';
 import { useNotificationStore } from '../../../stores/notification';
 
-const emit = defineEmits(['food-data-provided']);
+const emit = defineEmits(['data-provided']);
 
 const notificationStore = useNotificationStore();
 
@@ -27,22 +26,6 @@ const submitFoodName = async () => {
     notificationStore.showNotification('음식명을 입력해주세요.', 'error');
     return;
   }
-
-  isLoading.value = true;
-  notificationStore.hideNotification();
-
-  try {
-    const response = await apiClient.get('/food/nutrition-info', {
-      params: { foodName: foodNameInput.value.trim() }
-    });
-    // { foodName, calories, carbs, protein, fat }
-    emit('food-data-provided', { foodData: response.data, imageFile: null }); // 이미지 파일은 null로 보냄
-    notificationStore.showNotification('영양 정보 조회 완료!', 'success');
-  } catch (err) {
-    console.error('음식명 영양 정보 조회 실패:', err);
-    notificationStore.showNotification('입력하신 음식에 대한 정보를 찾을 수 없습니다. 다시 확인해주세요.', 'error');
-  } finally {
-    isLoading.value = false;
-  }
+  emit('data-provided', { foodName: foodNameInput.value.trim() });
 };
 </script>

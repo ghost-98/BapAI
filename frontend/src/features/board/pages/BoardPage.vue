@@ -166,7 +166,7 @@ const selectedCategory = ref('ALL');
 const sortCriteria = ref('latest');
 const isGridView = ref(false);
 
-const categories = [ // Define categories for filter
+const categories = [
   { id: 'ALL', name: '전체 게시판' },
   { id: 'FREE', name: '자유 게시판' },
   { id: 'REVIEW', name: '식단 공유' },
@@ -187,7 +187,7 @@ const fetchPosts = async () => {
       sort: sortCriteria.value, // 정렬 기준
     };
     const response = await apiClient.get('/boards', { params });
-    console.log('API Response for /boards:', response.data); // Add this line
+    console.log('API Response for /boards:', response.data);
     posts.value = response.data.list;
     totalPages.value = response.data.totalPages;
   } catch (error) {

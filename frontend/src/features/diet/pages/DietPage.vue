@@ -175,7 +175,7 @@
                     <li v-for="record in getRecordsByMealType(meal.name)" :key="record.id" class="flex justify-between items-center group p-2 -m-2 rounded-lg hover:bg-white/50">
                       <span class="text-gray-700">{{ record.food }}</span>
                       <div class="flex items-center space-x-3">
-                        <span class="text-gray-600 font-medium">{{ record.calories }} kcal</span>
+                        <span class="text-gray-600 font-medium">{{ record.kcal }} kcal</span>
                         <div class="transition-opacity">
                           <button @click="openEditModal(record)" class="text-gray-400 hover:text-orange-600 p-1">
                             <Pencil class="w-4 h-4" />
@@ -405,21 +405,7 @@ const fetchDietData = async () => {
       params = { startDate: toYYYYMMDD(startOfMonth), endDate: toYYYYMMDD(endOfMonth) };
     }
     const response = await apiClient.get(`/diet-logs`, { params });
-    
-    if (response.data && response.data.length === 0 && isToday(currentDate.value) && currentView.value === 'daily') {
-      dietRecords.value = [
-        {
-          id: 999,
-          date: toYYYYMMDD(new Date()),
-          mealType: '점심',
-          food: '닭가슴살 샐러드 (더미)',
-          calories: 350,
-          time: '12:30'
-        }
-      ];
-    } else {
-      dietRecords.value = response.data || [];
-    }
+    dietRecords.value = response.data || [];
 
     const streakResponse = await fetchDietStreak();
     dietStreak.value = streakResponse;
