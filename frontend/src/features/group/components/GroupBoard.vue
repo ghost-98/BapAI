@@ -8,7 +8,7 @@
       </div>
       <button @click="showWriteForm = true" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2 transform hover:scale-105">
         <Plus class="w-5 h-5" />
-        새 글 작성
+        새 글
       </button>
     </div>
 

@@ -8,7 +8,7 @@
       </div>
       <router-link to="/board/write" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2 transform hover:scale-105">
         <Plus class="w-5 h-5" />
-        새 글 작성
+        새 글
       </router-link>
     </div>
 
@@ -74,6 +74,15 @@
             >
               댓글순
             </button>
+            <button 
+              @click="sortCriteria = 'views'; handleSearch()"
+              :class="[
+                'px-4 py-1.5 rounded-md text-sm font-medium transition',
+                sortCriteria === 'views' ? 'bg-white text-orange-600 shadow' : 'text-gray-600 hover:bg-gray-200'
+              ]"
+            >
+              조회수순
+            </button>
           </div>
           <button @click="isGridView = !isGridView" class="p-2 rounded-lg bg-white/50 border border-gray-300 shadow-sm hover:bg-gray-100/70 transition-colors">
             <LayoutGrid v-if="!isGridView" class="w-5 h-5 text-gray-600" />
@@ -119,6 +128,10 @@
                 <MessageSquare class="w-4 h-4" />
                 <span>{{ post.commentCount || 0 }}</span>
               </div>
+              <div class="flex items-center gap-1">
+                <Eye class="w-4 h-4" />
+                <span>{{ post.viewCount || 0 }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -149,7 +162,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Plus, Search, User, ThumbsUp, ThumbsDown, MessageSquare, ChevronLeft, ChevronRight, LayoutGrid, List, ImageIcon } from 'lucide-vue-next';
+import { Plus, Search, User, ThumbsUp, ThumbsDown, MessageSquare, ChevronLeft, ChevronRight, LayoutGrid, List, ImageIcon, Eye } from 'lucide-vue-next';
 import apiClient from '../../../api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -160,7 +173,6 @@ const router = useRouter();
 const posts = ref([]);
 const currentPage = ref(1);
 const totalPages = ref(1);
-const searchCriteria = ref('title');
 const searchQuery = ref('');
 const selectedCategory = ref('ALL');
 const sortCriteria = ref('latest');
@@ -182,10 +194,12 @@ const fetchPosts = async () => {
   try {
     const params = {
       page: currentPage.value,
-      [searchCriteria.value]: searchQuery.value,
       category: selectedCategory.value === 'ALL' ? undefined : selectedCategory.value, // Add category filter
       sort: sortCriteria.value, // 정렬 기준
     };
+    if (searchQuery.value) {
+      params.word = searchQuery.value;
+    }
     const response = await apiClient.get('/boards', { params });
     console.log('API Response for /boards:', response.data);
     posts.value = response.data.list;

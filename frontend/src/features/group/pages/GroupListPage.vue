@@ -159,7 +159,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { PlusCircle, Users, Search, X } from 'lucide-vue-next'
 import GroupCreateModal from '@/features/group/components/GroupCreateModal.vue'
-import { fetchGroups, createGroupApi, joinGroupApi, fetchAvailableTags } from '@/api' // Import the new API function fetchAvailableTags
+import { fetchGroups, fetchMyGroups, createGroupApi, joinGroupApi, fetchAvailableTags } from '@/api' // Import the new API function fetchAvailableTags
 import { useNotificationStore } from '@/stores/notification' // Import notification store
 
 const router = useRouter()
@@ -233,16 +233,12 @@ const fetchAllGroups = async () => {
   }
 };
 
-const fetchMyGroups = async () => {
-  console.log('Fetching my groups...');
+const loadMyGroupsData = async () => {
+  console.log('Fetching my groups from /groups/my...');
   try {
-    // In a real application, this would be a separate API call
-    // For now, we'll fetch all groups without search/tag filters and then filter by memberIds
-    const response = await fetchGroups({}); // Fetch all groups without search/tag filters
-    console.log('API response for my groups (unfiltered):', response);
-    // Assuming a user ID of 1 for demonstration. Replace with actual user ID.
-    myGroups.value = response.filter(group => group.memberIds && group.memberIds.includes(currentUserId));
-    console.log('Filtered my groups:', myGroups.value);
+    const response = await fetchMyGroups(); // API 함수 호출
+    myGroups.value = response;
+    console.log('API response for my groups:', myGroups.value);
   } catch (error) {
     console.error('Failed to fetch my groups:', error);
     notificationStore.showNotification('내가 가입한 그룹 목록을 불러오는데 실패했습니다.', 'error');
@@ -265,7 +261,7 @@ watch(activeTab, (newTab) => {
   if (newTab === 'all') {
     fetchAllGroups();
   } else if (newTab === 'my') {
-    fetchMyGroups();
+    loadMyGroupsData();
   }
 });
 
@@ -345,7 +341,7 @@ onMounted(async () => {
   }
 
   await fetchAllGroups();
-  await fetchMyGroups();
+  await loadMyGroupsData();
 });
 </script>
 

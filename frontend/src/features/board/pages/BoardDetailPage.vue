@@ -43,7 +43,7 @@
           <!-- Post Content -->
           <div class="mb-8">
             <div v-if="post.imgUrl" class="flex justify-center mb-6">
-              <img :src="`${IMAGE_BASE_URL}${post.imgUrl}`" alt="게시글 이미지" class="w-full object-contain rounded-lg shadow-sm max-h-96">
+              <img :src="`${post.imgUrl}`" alt="게시글 이미지" class="w-full object-contain rounded-lg shadow-sm max-h-96">
             </div>
             <div class="prose max-w-none text-gray-800 leading-relaxed text-lg">
               <p>{{ post.content }}</p>
@@ -66,9 +66,9 @@
 
       <!-- Comment Section -->
       <div class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
-        <div class="space-y-6">
+        <div class="bg-white/50 backdrop-blur-xl rounded-2xl p-4 border border-white/50 shadow-sm space-y-6">
           <!-- Comment Input Form -->
-          <div v-if="isLoggedIn" class="bg-white/50 backdrop-blur-xl rounded-2xl p-4 border border-white/50 shadow-sm">
+          <div v-if="isLoggedIn">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">댓글 작성</h3>
             <textarea
               v-model="newCommentContent"
@@ -86,8 +86,19 @@
             </div>
           </div>
 
+          <!-- Comments Header -->
+          <div class="flex justify-between items-center pt-4">
+            <h3 class="text-lg font-semibold text-gray-800">댓글 ({{ totalCount }})</h3>
+            <select v-model="sortOption" class="px-3 py-1.5 text-sm border-gray-300 rounded-md focus:border-orange-500 focus:ring-orange-500">
+              <option value="latest">최신순</option>
+              <option value="oldest">오래된순</option>
+              <option value="likes">추천순</option>
+            </select>
+          </div>
+
           <!-- Existing Comments -->
-          <div v-for="comment in comments" :key="comment.commentId" class="bg-white/50 rounded-lg p-4 border border-white/50 shadow-sm">
+          <div v-if="comments.length > 0" class="space-y-4">
+            <div v-for="comment in comments" :key="comment.commentId" class="bg-white/50 rounded-lg p-4 border border-white/50 shadow-sm">
               <!-- Parent Comment -->
               <div>
                 <div class="flex items-center justify-between mb-3">
@@ -138,56 +149,15 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+          <p v-if="!isLoading && totalCount === 0" class="text-center text-gray-500 py-6">아직 댓글이 없습니다.</p>
 
-              <!-- Toggle Replies Button -->
-              <div v-if="comment.children && comment.children.length > 0" class="mt-4">
-                <button @click="toggleRepliesVisibility(comment)" class="text-sm font-semibold text-orange-600 hover:underline">
-                  답글 {{ comment.children.length }}개 {{ comment.areChildrenVisible ? '숨기기' : '보기' }}
-                </button>
-              </div>
-
-              <!-- Nested Replies (Children) -->
-              <div v-if="comment.areChildrenVisible && comment.children && comment.children.length > 0" class="ml-6 md:ml-10 mt-4 space-y-4">
-                <div v-for="reply in comment.children" :key="reply.commentId" class="bg-white/70 rounded-lg p-4 border border-gray-200 shadow-sm">
-                  <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-2">
-                      <UserCircle class="w-4 h-4 text-gray-500" />
-                      <span class="font-semibold text-gray-800">{{ reply.nickname }}</span>
-                      <span v-if="post && reply.userId === post.userId" class="bg-orange-100 text-orange-800 text-xs font-semibold px-2 py-0.5 rounded-full">작성자</span>
-                      <span class="text-xs text-gray-500">{{ formatDateTime(reply.createdAt) }}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button @click="handleReaction(reply, 'LIKE')" :class="['flex items-center gap-1 text-sm', reply.userLiked ? 'text-orange-600' : 'text-gray-500 hover:text-orange-600']">
-                        <ThumbsUp class="w-4 h-4 text-gray-400" /> {{ reply.likeCount || 0 }}
-                      </button>
-                      <button @click="handleReaction(reply, 'DISLIKE')" :class="['flex items-center gap-1 text-sm', reply.userDisliked ? 'text-rose-600' : 'text-gray-500 hover:text-rose-600']">
-                        <ThumbsDown class="w-4 h-4 text-gray-400" /> {{ reply.dislikeCount || 0 }}
-                      </button>
-                      <!-- Action Menu (Kebab) for Replies -->
-                      <div class="relative" v-if="isLoggedIn && reply.userId === Number(currentUserId)">
-                        <button @click.stop="toggleActionMenu(reply.commentId)" class="p-1 rounded-full hover:bg-gray-200">
-                          <MoreVertical class="w-4 h-4 text-gray-500" />
-                        </button>
-                        <div v-if="openMenuCommentId === reply.commentId" class="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg z-10 border">
-                          <button @click="editComment(reply)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">수정</button>
-                          <button @click="deleteComment(reply.commentId)" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">삭제</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <template v-if="!reply.isEditing">
-                    <p class="text-gray-700 leading-relaxed">{{ reply.content }}</p>
-                  </template>
-                  <template v-else>
-                    <textarea v-model="reply.editedContent" rows="3" class="w-full px-4 py-2 rounded-xl border-2 border-gray-300 focus:border-orange-500 focus:ring-orange-500 focus:outline-none transition-colors bg-white/50 text-gray-800"></textarea>
-                    <div class="flex justify-end mt-2 gap-2">
-                      <button @click="cancelEdit(reply)" class="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-all font-medium">취소</button>
-                      <button @click="saveEditedComment(reply)" class="px-4 py-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all font-semibold">저장</button>
-                    </div>
-                  </template>
-                </div>
-              </div>
-            <p v-if="!comments || comments.length === 0" class="text-center text-gray-500 py-6">아직 댓글이 없습니다.</p>
+          <!-- Load More Button -->
+          <div v-if="hasNext" class="flex justify-center pt-4">
+            <button @click="loadMoreComments" :disabled="isLoading" class="px-6 py-2.5 bg-orange-100 text-orange-600 rounded-xl hover:bg-orange-200 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+              {{ isLoading ? '로딩 중...' : '더보기' }}
+            </button>
           </div>
         </div>
       </div>
@@ -200,7 +170,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import apiClient from '../../../api'
 import { UserCircle, Eye, ThumbsUp, ThumbsDown, MoreVertical } from 'lucide-vue-next'
@@ -219,7 +189,13 @@ const comments = ref([])
 const newCommentContent = ref('')
 const openMenuCommentId = ref(null)
 
-const topLevelCommentCount = computed(() => comments.value.length);
+// Pagination and Sorting State
+const sortOption = ref('latest');
+const currentPage = ref(0);
+const totalCount = ref(0);
+const hasNext = ref(false);
+const isLoading = ref(false);
+const COMMENT_PAGE_SIZE = 10;
 
 const categories = [
   { id: 'FREE', name: '자유게시판' },
@@ -250,7 +226,7 @@ onMounted(() => {
   boardId.value = route.params.boardId
   if (boardId.value) {
     fetchPostDetail(boardId.value)
-    fetchComments(boardId.value)
+    fetchComments(0); // Initial fetch for page 0
   }
   window.addEventListener('click', closeAllMenus);
 })
@@ -259,10 +235,13 @@ onBeforeUnmount(() => {
   window.removeEventListener('click', closeAllMenus);
 });
 
+watch(sortOption, () => {
+  fetchComments(0, true); // Reset and fetch
+});
+
 const fetchPostDetail = async (id) => {
   try {
     const response = await apiClient.get(`/boards/${id}`)
-    // Map server's userLiked string/null to boolean flags
     post.value = {
       ...response.data,
       userLiked: response.data.userLiked === 'LIKE',
@@ -275,46 +254,55 @@ const fetchPostDetail = async (id) => {
   }
 }
 
-const processComments = (commentList) => {
-  if (!commentList) return [];
-  return commentList.map(comment => {
-    const processedComment = {
-      ...comment,
-      // Map server's userLiked string/null to boolean flags
-      userLiked: comment.userLiked === 'LIKE',
-      userDisliked: comment.userLiked === 'DISLIKE',
-      isEditing: false,
-      originalContent: comment.content,
-      isReplying: false,
-      replyText: '',
-      areChildrenVisible: false
-    };
-    if (comment.children && comment.children.length > 0) {
-      processedComment.children = processComments(comment.children);
-    }
-    return processedComment;
-  });
-};
+const processCommentData = (comment) => ({
+  ...comment,
+  userLiked: comment.userLiked === 'LIKE',
+  userDisliked: comment.userLiked === 'DISLIKE',
+  isEditing: false,
+  originalContent: comment.content,
+  isReplying: false,
+  replyText: '',
+});
 
-const fetchComments = async (id) => {
+const fetchComments = async (page = 0, isSortChange = false) => {
+  if (isLoading.value) return;
+  isLoading.value = true;
   try {
-    const response = await apiClient.get(`/boards/${id}/comments`);
-    comments.value = processComments(response.data);
+    const response = await apiClient.get(`/comments/board/${boardId.value}`, {
+      params: {
+        page: page,
+        size: COMMENT_PAGE_SIZE,
+        sort: sortOption.value,
+      }
+    });
+    const data = response.data;
+    const processedComments = data.comments.map(processCommentData);
+
+    if (page === 0 || isSortChange) {
+      comments.value = processedComments;
+    } else {
+      comments.value.push(...processedComments);
+    }
+    
+    hasNext.value = data.hasNext;
+    currentPage.value = data.currentPage;
+    totalCount.value = data.totalCount;
+
   } catch (error) {
     console.error('댓글 불러오기 실패:', error.response ? error.response.data : error.message)
+  } finally {
+    isLoading.value = false;
   }
 }
 
-const toggleRepliesVisibility = (comment) => {
-  comment.areChildrenVisible = !comment.areChildrenVisible;
+const loadMoreComments = () => {
+  if (hasNext.value) {
+    fetchComments(currentPage.value + 1);
+  }
 };
 
 const toggleActionMenu = (commentId) => {
-  if (openMenuCommentId.value === commentId) {
-    openMenuCommentId.value = null;
-  } else {
-    openMenuCommentId.value = commentId;
-  }
+  openMenuCommentId.value = openMenuCommentId.value === commentId ? null : commentId;
 };
 
 const handleReaction = async (item, reactionType) => {
@@ -332,52 +320,37 @@ const handleReaction = async (item, reactionType) => {
   const wasLiked = item.userLiked;
   const wasDisliked = item.userDisliked;
 
-  const originalState = {
-    userLiked: item.userLiked,
-    userDisliked: item.userDisliked,
-    likeCount: item.likeCount,
-    dislikeCount: item.dislikeCount,
-  };
+  const originalState = { ...item };
 
   try {
+    // Optimistic UI update
     if (isLiking) {
-      if (wasLiked) {
-        item.userLiked = false;
-        item.likeCount--;
-        await apiClient.delete(url, { data: { type: 'LIKE' } });
-      } else {
-        item.userLiked = true;
-        item.likeCount++;
-        if (wasDisliked) {
-          item.userDisliked = false;
-          item.dislikeCount--;
-          await apiClient.delete(url, { data: { type: 'DISLIKE' } });
-        }
-        await apiClient.post(url, { type: 'LIKE' });
-      }
-    } else {
-      if (wasDisliked) {
+      item.userLiked = !wasLiked;
+      item.likeCount += wasLiked ? -1 : 1;
+      if (!wasLiked && wasDisliked) {
         item.userDisliked = false;
-        item.dislikeCount--;
-        await apiClient.delete(url, { data: { type: 'DISLIKE' } });
-      } else {
-        item.userDisliked = true;
-        item.dislikeCount++;
-        if (wasLiked) {
-          item.userLiked = false;
-          item.likeCount--;
-          await apiClient.delete(url, { data: { type: 'LIKE' } });
-        }
-        await apiClient.post(url, { type: 'DISLIKE' });
+        item.dislikeCount -= 1;
       }
+    } else { // Disliking
+      item.userDisliked = !wasDisliked;
+      item.dislikeCount += wasDisliked ? -1 : 1;
+      if (!wasDisliked && wasLiked) {
+        item.userLiked = false;
+        item.likeCount -= 1;
+      }
+    }
+
+    // API call
+    if ((isLiking && wasLiked) || (!isLiking && wasDisliked)) {
+      await apiClient.delete(url, { data: { type: reactionType } });
+    } else {
+      await apiClient.post(url, { type: reactionType });
     }
   } catch (error) {
     console.error('Reaction 처리 실패:', error.response ? error.response.data : error.message);
     alert('요청 처리에 실패했습니다.');
-    item.userLiked = originalState.userLiked;
-    item.userDisliked = originalState.userDisliked;
-    item.likeCount = originalState.likeCount;
-    item.dislikeCount = originalState.dislikeCount;
+    // Revert UI on error
+    Object.assign(item, originalState);
   }
 };
 
@@ -394,7 +367,7 @@ const addComment = async () => {
     });
     newCommentContent.value = '';
     alert('댓글이 성공적으로 작성되었습니다.');
-    fetchComments(boardId.value);
+    fetchComments(0, true); // Refresh comments
   } catch (error) {
     console.error('댓글 작성 실패:', error.response ? error.response.data : error.message);
     alert('댓글 작성에 실패했습니다.');
@@ -403,14 +376,7 @@ const addComment = async () => {
 
 const toggleReplyForm = (commentToReply) => {
   const currentlyReplying = commentToReply.isReplying;
-  const closeAllReplies = (commentList) => {
-    commentList.forEach(c => {
-      c.isReplying = false;
-      c.replyText = '';
-      if (c.children) closeAllReplies(c.children);
-    });
-  };
-  closeAllReplies(comments.value);
+  comments.value.forEach(c => { c.isReplying = false; c.replyText = ''; });
   commentToReply.isReplying = !currentlyReplying;
   closeAllMenus();
 };
@@ -434,7 +400,7 @@ const addReply = async (parentComment) => {
     parentComment.isReplying = false;
     parentComment.replyText = '';
     alert('답글이 성공적으로 작성되었습니다.');
-    fetchComments(boardId.value);
+    fetchComments(0, true); // Refresh comments
   } catch (error) {
     console.error('답글 작성 실패:', error.response ? error.response.data : error.message);
     alert('답글 작성에 실패했습니다.');
@@ -470,11 +436,11 @@ const cancelEdit = (comment) => {
 
 const deleteComment = async (commentId) => {
   closeAllMenus();
-  if (confirm('정말로 이 댓글을 삭제하시겠습니까? 대댓글이 있는 경우 함께 삭제될 수 있습니다.')) {
+  if (confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
     try {
       await apiClient.delete(`/comments/${commentId}`);
       alert('댓글이 삭제되었습니다.');
-      fetchComments(boardId.value);
+      fetchComments(0, true); // Refresh comments
     } catch (error) {
       console.error('댓글 삭제 실패:', error.response ? error.response.data : error.message);
       alert('댓글 삭제에 실패했습니다.');
@@ -483,15 +449,10 @@ const deleteComment = async (commentId) => {
 };
 
 const formatDateTime = (dateTime) => {
-  if (!dateTime) {
-    return '날짜 정보 없음';
-  }
+  if (!dateTime) return '날짜 정보 없음';
   try {
     const date = parse(dateTime, 'yyyy-MM-dd HH:mm:ss', new Date());
-    if (isNaN(date.getTime())) {
-      return '날짜 형식 오류';
-    }
-    return format(date, 'yyyy년 MM월 dd일 HH:mm', { locale: ko });
+    return isNaN(date.getTime()) ? '날짜 형식 오류' : format(date, 'yyyy년 MM월 dd일 HH:mm', { locale: ko });
   } catch (e) {
     console.error('날짜 파싱 오류:', e, '입력값:', dateTime);
     return '날짜 형식 오류';

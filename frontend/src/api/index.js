@@ -139,12 +139,48 @@ export const analyzeFood = async (formData) => {
   }
 };
 
+export const getDietLogs = async (params) => {
+  try {
+    const response = await apiClient.get(`/diet-logs/me`, { params });
+    if (response.data && Array.isArray(response.data)) {
+      return response.data.map(record => {
+          const { kcal, ...rest } = record;
+          return { ...rest, calories: kcal };
+      });
+    }
+    return response.data;
+  } catch (error) {
+    console.error('식단 기록 불러오기 실패:', error);
+    throw error;
+  }
+};
+
+export const deleteDietLog = async (logId) => {
+  try {
+    const response = await apiClient.delete(`/diet-logs/${logId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`식단 기록 ${logId} 삭제 실패:`, error);
+    throw error;
+  }
+};
+
 export const fetchGroups = async (params) => {
   try {
     const response = await apiClient.get(`/groups`, { params });
     return response.data;
   } catch (error) {
     console.error('그룹 불러오기 실패:', error);
+    throw error;
+  }
+};
+
+export const fetchMyGroups = async () => {
+  try {
+    const response = await apiClient.get(`/groups/my`);
+    return response.data;
+  } catch (error) {
+    console.error('내 그룹 목록 불러오기 실패:', error);
     throw error;
   }
 };

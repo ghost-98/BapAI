@@ -43,7 +43,7 @@
           <!-- Post Content -->
           <div class="mb-8">
             <div v-if="post.imgUrl" class="flex justify-center mb-6">
-              <img :src="`${IMAGE_BASE_URL}${post.imgUrl}`" alt="게시글 이미지" class="w-full object-contain rounded-lg shadow-sm max-h-96">
+              <img :src="`${post.imgUrl}`" alt="게시글 이미지" class="w-full object-contain rounded-lg shadow-sm max-h-96">
             </div>
             <div class="prose max-w-none text-gray-800 leading-relaxed text-lg">
               <p>{{ post.content }}</p>

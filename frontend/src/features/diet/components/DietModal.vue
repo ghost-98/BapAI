@@ -90,7 +90,7 @@
           <div class="border-t my-2"></div>
           <div class="flex justify-between items-baseline">
             <span class="font-semibold text-gray-600">총 칼로리:</span>
-            <span class="font-bold text-emerald-600 text-lg">{{ totalCalories.toFixed(1) }} calories</span>
+            <span class="font-bold text-emerald-600 text-lg">{{ totalCalories.toFixed(1) }} kcal</span>
           </div>
           <div class="text-xs text-gray-500 space-y-1 text-right">
             <p>탄수화물: {{ totalCarbs.toFixed(1) }}g</p>

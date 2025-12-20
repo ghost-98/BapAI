@@ -69,11 +69,11 @@
         </button>
       </div>
 
-      <!-- Summary Section -->
+      <!-- 요약 탭 -->
       <div v-if="activeSubTab === 'summary'">
         <h2 class="text-xl font-bold text-gray-800 mb-4">{{ currentSubTabTitle }}</h2>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Daily Summary -->
+          <!-- 일일 요약 -->
           <template v-if="currentView === 'daily'">
             <div class="lg:col-span-2 p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
               <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
@@ -124,18 +124,19 @@
             </div>
             <WaterTracker />
           </template>
-          <!-- Weekly/Monthly Summary -->
+          <!-- 주간/월간 요약 -->
           <template v-else>
             <div class="lg:col-span-3 p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
               <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 flex justify-around items-center">
-                <div class="text-center">
-                  <p class="text-sm text-gray-500">기간</p>
-                  <p class="text-2xl font-bold text-gray-800">{{ periodSummary.periodDays }}일</p>
-                </div>
-                <div class="text-center">
-                  <p class="text-sm text-gray-500">일 평균 칼로리</p>
-                  <p class="text-2xl font-bold text-orange-600">{{ periodSummary.avgCalories }} <span class="text-lg font-medium">kcal</span></p>
-                </div>
+                <!-- Monthly View Only -->
+            <div v-if="currentView === 'monthly'" class="text-center">
+              <p class="text-sm text-gray-500">기간</p>
+              <p class="text-2xl font-bold text-gray-800">{{ periodSummary.periodDays }}일</p>
+            </div>
+            <div class="text-center">
+              <p class="text-sm text-gray-500">일 평균 칼로리</p>
+              <p class="text-2xl font-bold text-orange-600">{{ periodSummary.avgCalories }} <span class="text-lg font-medium">kcal</span></p>
+            </div>
                 <div class="text-center">
                   <p class="text-sm text-gray-500">총 기록한 끼니</p>
                   <p class="text-2xl font-bold text-gray-800">{{ periodSummary.totalMeals }} <span class="text-lg font-medium">끼</span></p>
@@ -156,7 +157,7 @@
           </button>
         </div>
 
-        <!-- Daily View (contains meal records) -->
+        <!-- 일일 식단 기록 -->
         <div v-if="currentView === 'daily'" class="space-y-6">
           <template v-if="hasAnyRecordsToday">
             <div v-for="meal in mealTypes" :key="meal.name">
@@ -237,58 +238,58 @@
         </div>
       </div>
 
-        <!-- Weekly View -->
-        <div v-if="currentView === 'weekly'" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
-          <div class="w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-              <div v-for="day in weeklyData" :key="day.dateString" 
-                  @click="goToDate(day.dateString)"
-                  class="bg-white/50 p-4 rounded-2xl shadow-sm border flex flex-col cursor-pointer hover:border-orange-400 transition-all duration-300 hover:scale-105 hover:shadow-md">
-                  <div class="text-center mb-3">
-                      <p class="text-sm font-medium" :class="day.isToday ? 'text-orange-600' : 'text-gray-500'">{{ day.dayName }}</p>
-                      <p class="text-2xl font-bold" :class="day.isToday ? 'text-orange-700' : 'text-gray-800'">{{ day.dateNum }}</p>
-                  </div>
-                  <div class="flex-grow space-y-2 mb-3">
-                      <div v-for="meal in day.meals" :key="meal.type" class="flex items-center text-xs">
-                          <component :is="meal.icon" :class="`w-4 h-4 mr-2 text-${meal.color}-500`" />
-                          <span class="text-gray-600 truncate">{{ meal.food }}</span>
-                      </div>
-                      <p v-if="day.meals.length === 0" class="text-xs text-gray-400 text-center pt-4">기록 없음</p>
-                  </div>
-                  <div class="text-center">
-                      <p class="text-sm font-semibold text-gray-800">{{ day.totalCalories }} kcal</p>
-                      <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                          <div class="bg-gradient-to-r from-amber-500 to-orange-500 h-2 rounded-full" :style="{ width: `${(day.totalCalories / 2500) * 100}%` }"></div>
-                      </div>
-                  </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Monthly View -->
-        <div v-if="currentView === 'monthly'" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
-          <div class="w-full bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-white/50">
-            <div class="grid grid-cols-7 text-center font-semibold text-sm text-gray-600 mb-2">
-                <div v-for="day in ['일', '월', '화', '수', '목', '금', '토']" :key="day">{{ day }}</div>
-            </div>
-            <div class="grid grid-cols-7 gap-1">
-                <div v-for="day in monthlyData" :key="day.dateString"
-                    @click="day.isCurrentMonth && goToDate(day.dateString)"
-                    :class="[
-                        'h-32 p-2 border rounded-lg flex flex-col', 
-                        day.isCurrentMonth ? 'bg-white/50 cursor-pointer hover:border-orange-400' : 'bg-gray-50/20',
-                        day.isToday ? 'border-orange-500 border-2' : 'border-transparent'
-                    ]">
-                    <p :class="['font-semibold', day.isCurrentMonth ? 'text-gray-700' : 'text-gray-400']">{{ day.dateNum }}</p>
-                    <div v-if="day.totalCalories > 0" class="mt-2 text-xs text-center">
-                        <p class="font-bold text-orange-700">{{ day.totalCalories }}</p>
-                        <p class="text-gray-500">kcal</p>
+      <!-- 주간 식단 기록 -->
+      <div v-if="currentView === 'weekly'" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
+        <div class="w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            <div v-for="day in weeklyData" :key="day.dateString" 
+                @click="goToDate(day.dateString)"
+                class="bg-white/50 p-4 rounded-2xl shadow-sm border flex flex-col cursor-pointer hover:border-orange-400 transition-all duration-300 hover:scale-105 hover:shadow-md">
+                <div class="text-center mb-3">
+                    <p class="text-sm font-medium" :class="day.isToday ? 'text-orange-600' : 'text-gray-500'">{{ day.dayName }}</p>
+                    <p class="text-2xl font-bold" :class="day.isToday ? 'text-orange-700' : 'text-gray-800'">{{ day.dateNum }}</p>
+                </div>
+                <div class="flex-grow space-y-2 mb-3">
+                    <div v-for="meal in day.meals" :key="meal.type" class="flex items-center text-xs">
+                        <component :is="meal.icon" :class="`w-4 h-4 mr-2 text-${meal.color}-500`" />
+                        <span class="text-gray-600 truncate">{{ meal.food }}</span>
+                    </div>
+                    <p v-if="day.meals.length === 0" class="text-xs text-gray-400 text-center pt-4">기록 없음</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm font-semibold text-gray-800">{{ day.totalCalories }} kcal</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                        <div class="bg-gradient-to-r from-amber-500 to-orange-500 h-2 rounded-full" :style="{ width: `${(day.totalCalories / 2500) * 100}%` }"></div>
                     </div>
                 </div>
             </div>
           </div>
         </div>
+      </div>
+      
+      <!-- Monthly View -->
+      <div v-if="currentView === 'monthly'" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
+        <div class="w-full bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-white/50">
+          <div class="grid grid-cols-7 text-center font-semibold text-sm text-gray-600 mb-2">
+              <div v-for="day in ['일', '월', '화', '수', '목', '금', '토']" :key="day">{{ day }}</div>
+          </div>
+          <div class="grid grid-cols-7 gap-1">
+              <div v-for="day in monthlyData" :key="day.dateString"
+                  @click="day.isCurrentMonth && goToDate(day.dateString)"
+                  :class="[
+                      'h-32 p-2 border rounded-lg flex flex-col', 
+                      day.isCurrentMonth ? 'bg-white/50 cursor-pointer hover:border-orange-400' : 'bg-gray-50/20',
+                      day.isToday ? 'border-orange-500 border-2' : 'border-transparent'
+                  ]">
+                  <p :class="['font-semibold', day.isCurrentMonth ? 'text-gray-700' : 'text-gray-400']">{{ day.dateNum }}</p>
+                  <div v-if="day.totalCalories > 0" class="mt-2 text-xs text-center">
+                      <p class="font-bold text-orange-700">{{ day.totalCalories }}</p>
+                      <p class="text-gray-500">kcal</p>
+                  </div>
+              </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Diet Record Modal -->
@@ -400,11 +401,11 @@ const fetchDietData = async () => {
       endOfWeek.setDate(startOfWeek.getDate() + 6);
       params = { startDate: toYYYYMMDD(startOfWeek), endDate: toYYYYMMDD(endOfWeek) };
     } else if (currentView.value === 'monthly') {
-      const startOfMonth = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), 1);
-      const endOfMonth = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1, 0);
-      params = { startDate: toYYYYMMDD(startOfMonth), endDate: toYYYYMMDD(endOfMonth) };
+      const year = currentDate.value.getFullYear();
+      const month = (currentDate.value.getMonth() + 1).toString().padStart(2, '0');
+      params = { month: `${year}-${month}` };
     }
-    const response = await apiClient.get(`/diet-logs`, { params });
+    const response = await apiClient.get(`/diet-logs/me`, { params });
     dietRecords.value = response.data || [];
 
     const streakResponse = await fetchDietStreak();
