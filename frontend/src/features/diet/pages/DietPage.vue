@@ -21,8 +21,8 @@
           <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-white/50 flex items-center">
             <Trophy class="w-8 h-8 text-orange-500 mr-4 flex-shrink-0" />
             <div>
-              <p class="text-base font-semibold text-gray-800">식단 기록 연속 {{ dietStreak.current_streak }}일째!</p>
-              <p class="text-sm text-gray-500">최고 기록: {{ dietStreak.longest_streak }}일</p>
+              <p class="text-base font-semibold text-gray-800">식단 기록 연속 {{ dietStreak.currentStreak }}일째!</p>
+              <p class="text-sm text-gray-500">최고 기록: {{ dietStreak.longestStreak }}일</p>
             </div>
           </div>
         </div>

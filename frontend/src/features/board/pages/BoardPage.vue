@@ -165,9 +165,6 @@ import { useRouter } from 'vue-router';
 import { Plus, Search, User, ThumbsUp, ThumbsDown, MessageSquare, ChevronLeft, ChevronRight, LayoutGrid, List, ImageIcon, Eye } from 'lucide-vue-next';
 import apiClient from '../../../api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-const IMAGE_BASE_URL = API_BASE_URL.replace('/api', '');
-
 const router = useRouter();
 
 const posts = ref([]);

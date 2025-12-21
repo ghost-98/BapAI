@@ -177,7 +177,7 @@ export const fetchGroups = async (params) => {
 
 export const fetchMyGroups = async () => {
   try {
-    const response = await apiClient.get(`/groups/my`);
+    const response = await apiClient.get(`/groups/me`);
     return response.data;
   } catch (error) {
     console.error('내 그룹 목록 불러오기 실패:', error);

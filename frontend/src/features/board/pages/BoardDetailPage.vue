@@ -70,24 +70,24 @@
           <!-- Comment Input Form -->
           <div v-if="isLoggedIn">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">댓글 작성</h3>
-            <textarea
-              v-model="newCommentContent"
-              placeholder="댓글을 입력하세요..."
-              rows="3"
-              class="w-full px-4 py-2 rounded-xl border-2 border-gray-300 focus:border-orange-500 focus:ring-orange-500 focus:outline-none transition-colors bg-white/50 text-gray-800 shadow-sm"
-            ></textarea>
-            <div class="flex justify-end mt-3">
+            <div class="flex gap-2 items-end">
+              <textarea
+                v-model="newCommentContent"
+                placeholder="댓글을 입력하세요..."
+                rows="3"
+                class="flex-grow px-4 py-2 rounded-xl border-2 border-gray-300 focus:border-orange-500 focus:ring-orange-500 focus:outline-none transition-colors bg-white/50 text-gray-800 shadow-sm"
+              ></textarea>
               <button
                 @click="addComment"
-                class="px-5 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all font-semibold shadow-lg shadow-orange-500/30"
+                class="px-5 py-2.5 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all font-semibold shadow-lg shadow-orange-500/30 flex-shrink-0 h-full"
               >
-                댓글 작성
+                작성
               </button>
             </div>
           </div>
 
           <!-- Comments Header -->
-          <div class="flex justify-between items-center pt-4">
+          <div class="flex justify-between items-center pt-4 border-t border-gray-200 mt-6">
             <h3 class="text-lg font-semibold text-gray-800">댓글 ({{ totalCount }})</h3>
             <select v-model="sortOption" class="px-3 py-1.5 text-sm border-gray-300 rounded-md focus:border-orange-500 focus:ring-orange-500">
               <option value="latest">최신순</option>
@@ -153,12 +153,17 @@
           </div>
           <p v-if="!isLoading && totalCount === 0" class="text-center text-gray-500 py-6">아직 댓글이 없습니다.</p>
 
-          <!-- Load More Button -->
-          <div v-if="hasNext" class="flex justify-center pt-4">
-            <button @click="loadMoreComments" :disabled="isLoading" class="px-6 py-2.5 bg-orange-100 text-orange-600 rounded-xl hover:bg-orange-200 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-              {{ isLoading ? '로딩 중...' : '더보기' }}
-            </button>
-          </div>
+          <!-- Pagination Component -->
+          <template v-if="totalPages > 1">
+            <CommentPagination
+              :key="currentPage"
+              :currentPage="currentPage + 1"
+              :totalPages="totalPages"
+              @page-change="handlePageChange"
+            />
+          </template>
+
+          
         </div>
       </div>
     </div>
@@ -176,6 +181,7 @@ import apiClient from '../../../api'
 import { UserCircle, Eye, ThumbsUp, ThumbsDown, MoreVertical } from 'lucide-vue-next'
 import { format, parse } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import CommentPagination from '../../../components/common/CommentPagination.vue'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 const IMAGE_BASE_URL = API_BASE_URL.replace('/api', '');
@@ -194,6 +200,7 @@ const sortOption = ref('latest');
 const currentPage = ref(0);
 const totalCount = ref(0);
 const hasNext = ref(false);
+const totalPages = ref(1);
 const isLoading = ref(false);
 const COMMENT_PAGE_SIZE = 10;
 
@@ -276,17 +283,16 @@ const fetchComments = async (page = 0, isSortChange = false) => {
       }
     });
     const data = response.data;
-    const processedComments = data.comments.map(processCommentData);
+    const processedComments = data.list.map(processCommentData);
 
-    if (page === 0 || isSortChange) {
-      comments.value = processedComments;
-    } else {
-      comments.value.push(...processedComments);
-    }
+    comments.value = processedComments;
     
     hasNext.value = data.hasNext;
-    currentPage.value = data.currentPage;
-    totalCount.value = data.totalCount;
+    currentPage.value = page; // Update currentPage based on the requested page
+    totalCount.value = data.totalElements;
+    totalPages.value = data.totalPages;
+
+    
 
   } catch (error) {
     console.error('댓글 불러오기 실패:', error.response ? error.response.data : error.message)
@@ -294,6 +300,10 @@ const fetchComments = async (page = 0, isSortChange = false) => {
     isLoading.value = false;
   }
 }
+
+const handlePageChange = (page) => {
+  fetchComments(page - 1); // Convert to 0-indexed for API call
+};
 
 const loadMoreComments = () => {
   if (hasNext.value) {
