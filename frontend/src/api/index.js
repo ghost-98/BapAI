@@ -141,7 +141,9 @@ export const analyzeFood = async (formData) => {
 
 export const getDietLogs = async (params) => {
   try {
+    console.log('API: getDietLogs called with params:', params); // Added log
     const response = await apiClient.get(`/diet-logs/me`, { params });
+    console.log('API: getDietLogs raw response data:', response.data); // Added log
     
     // 'date' 파라미터가 있고 'month'나 'startDate'가 없으면 일일 요약 요청으로 간주
     if (params.date && !params.month && !params.startDate) {

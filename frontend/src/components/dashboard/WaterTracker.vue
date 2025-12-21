@@ -52,7 +52,7 @@
           +{{ intake - goal }}잔 초과 달성!
         </p>
         <p v-else-if="isComplete" class="text-blue-600 font-semibold mt-2 animate-pulse">
-          🎉 목표 달성! 🎉
+          목표 달성!
         </p>
       </div>
     </div>
