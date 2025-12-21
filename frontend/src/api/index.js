@@ -142,13 +142,26 @@ export const analyzeFood = async (formData) => {
 export const getDietLogs = async (params) => {
   try {
     const response = await apiClient.get(`/diet-logs/me`, { params });
-    if (response.data && Array.isArray(response.data)) {
-      return response.data.map(record => {
+    
+    // 'date' 파라미터가 있고 'month'나 'startDate'가 없으면 일일 요약 요청으로 간주
+    if (params.date && !params.month && !params.startDate) {
+        // 일일 요약 객체는 그대로 반환
+        return response.data;
+    }
+
+    // 그 외(주간/월간)는 기록의 배열로 처리
+    const records = response.data.results || response.data; 
+    
+    if (Array.isArray(records)) {
+      return records.map(record => {
           const { kcal, ...rest } = record;
-          return { ...rest, calories: kcal };
+          const calories = record.calories !== undefined ? record.calories : kcal;
+          return { ...rest, calories };
       });
     }
-    return response.data;
+
+    console.warn('getDietLogs가 배열 형식의 응답을 받지 못했습니다 (비-일일 요청):', response.data);
+    return []; 
   } catch (error) {
     console.error('식단 기록 불러오기 실패:', error);
     throw error;
@@ -282,6 +295,26 @@ export const deleteGroupBoard = async (groupId, boardId) => {
     return response.data;
   } catch (error) {
     console.error(`그룹 ${groupId}의 게시물 ${boardId} 삭제 실패:`, error);
+    throw error;
+  }
+};
+
+export const updateWaterGoal = async (date, type) => {
+  try {
+    const response = await apiClient.post('/diet-logs/water/goal', { date, type });
+    return response.data;
+  } catch (error) {
+    console.error('물 목표량 업데이트 실패:', error);
+    throw error;
+  }
+};
+
+export const updateWaterCount = async (date, type) => {
+  try {
+    const response = await apiClient.post('/diet-logs/water/count', { date, type });
+    return response.data;
+  } catch (error) {
+    console.error('물 섭취량 업데이트 실패:', error);
     throw error;
   }
 };

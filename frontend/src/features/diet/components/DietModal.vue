@@ -59,10 +59,9 @@
         <div>
           <label for="mealType" class="block text-sm font-medium text-gray-700 mb-1">식사 종류</label>
           <select id="mealType" v-model="form.mealType" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" required>
-            <option>아침</option>
-            <option>점심</option>
-            <option>저녁</option>
-            <option>간식</option>
+            <option v-for="meal in mealTypes" :key="meal.apiValue" :value="meal.apiValue">
+              {{ meal.name }}
+            </option>
           </select>
         </div>
         <div>
@@ -81,7 +80,7 @@
           </div>
           <div class="flex justify-between items-baseline">
             <span class="font-semibold text-gray-600">식사:</span>
-            <span class="font-bold text-gray-800">{{ form.mealType }}</span>
+            <span class="font-bold text-gray-800">{{ selectedMealTypeName }}</span>
           </div>
           <div class="flex justify-between items-baseline">
             <span class="font-semibold text-gray-600">음식:</span>
@@ -130,7 +129,6 @@ import InputMethodSelectionStep from './InputMethodSelectionStep.vue';
 import FoodNameInputStep from './FoodNameInputStep.vue';
 import FoodNameAndImageInputStep from './FoodNameAndImageInputStep.vue';
 
-import apiClient from '../../../api';
 import { apiClientForMultipart, analyzeFood } from '../../../api';
 import { useNotificationStore } from '../../../stores/notification';
 
@@ -148,10 +146,17 @@ const finalFoodData = ref(null);
 const imageFileToUpload = ref(null);
 const isLoading = ref(false);
 
+const mealTypes = [
+  { name: '아침', apiValue: 'BREAKFAST' },
+  { name: '점심', apiValue: 'LUNCH' },
+  { name: '저녁', apiValue: 'DINNER' },
+  { name: '간식', apiValue: 'SNACK' },
+];
+
 const form = ref({
   date: new Date().toISOString().slice(0, 10),
   time: new Date().toTimeString().slice(0, 5),
-  mealType: '아침',
+  mealType: 'BREAKFAST',
   servings: 1,
 });
 
@@ -159,6 +164,11 @@ const totalCalories = computed(() => (finalFoodData.value?.kcal || 0) * form.val
 const totalCarbs = computed(() => (finalFoodData.value?.carbs || 0) * form.value.servings);
 const totalProtein = computed(() => (finalFoodData.value?.protein || 0) * form.value.servings);
 const totalFat = computed(() => (finalFoodData.value?.fat || 0) * form.value.servings);
+
+const selectedMealTypeName = computed(() => {
+  const selectedMeal = mealTypes.find(meal => meal.apiValue === form.value.mealType);
+  return selectedMeal ? selectedMeal.name : '';
+});
 
 watch(() => props.show, (newVal) => {
   if (newVal) resetModal();

@@ -33,7 +33,12 @@
             </div>
           </div>
           <NutritionAnalysis />
-          <WaterTracker />
+          <WaterTracker 
+            :intake="todaySummary?.waterCupCount || 0"
+            :goal="todaySummary?.waterGoal || 8"
+            :date="todayDateString"
+            @data-changed="fetchTodaySummary"
+          />
         </div>
       </div>
 
@@ -73,9 +78,21 @@ import WaterTracker from '@/components/dashboard/WaterTracker.vue';
 import NutritionAnalysis from '@/components/dashboard/NutritionAnalysis.vue';
 import ScoreTrendChart from '@/components/dashboard/ScoreTrendChart.vue';
 import { useAuthStore } from '../../../stores/auth';
+import { getDietLogs } from '../../../api';
+import { toYYYYMMDD } from '../../../utils/date';
 
 const authStore = useAuthStore();
 const myScores = ref([]);
+const todaySummary = ref(null);
+const todayDateString = toYYYYMMDD(new Date());
+
+const fetchTodaySummary = async () => {
+  try {
+    todaySummary.value = await getDietLogs({ date: todayDateString });
+  } catch (error) {
+    console.error("오늘의 요약 정보를 가져오는 데 실패했습니다:", error);
+  }
+};
 
 const generateLast7DaysScores = () => {
   const scores = [];
@@ -98,5 +115,6 @@ const generateLast7DaysScores = () => {
 
 onMounted(() => {
   myScores.value = generateLast7DaysScores();
+  fetchTodaySummary();
 });
 </script>

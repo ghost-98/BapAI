@@ -77,14 +77,18 @@
           <template v-if="currentView === 'daily'">
             <div class="lg:col-span-2 p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
               <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-3 gap-6">
                   <div class="text-center">
                     <p class="text-sm text-gray-500">총 칼로리</p>
                     <p class="text-3xl font-bold text-orange-600">{{ dailySummary.totalCalories }} <span class="text-lg font-medium">kcal</span></p>
                   </div>
                   <div class="text-center">
-                    <p class="text-sm text-gray-500">기록한 끼니</p>
-                    <p class="text-3xl font-bold text-gray-800">{{ dailySummary.mealCount }}끼</p>
+                    <p class="text-sm text-gray-500">식사</p>
+                    <p class="text-3xl font-bold text-gray-800">{{ dailySummary.totalMealCount }}끼</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-sm text-gray-500">간식</p>
+                    <p class="text-3xl font-bold text-gray-800">{{ dailySummary.totalSnackCount }}회</p>
                   </div>
                 </div>
                 <div class="border-t my-4"></div>
@@ -122,7 +126,12 @@
                 </div>
               </div>
             </div>
-            <WaterTracker />
+            <WaterTracker 
+              :intake="dailySummaryData?.waterCupCount || 0"
+              :goal="dailySummaryData?.waterGoal || 8"
+              :date="toYYYYMMDD(currentDate)"
+              @data-changed="fetchDietData" 
+            />
           </template>
           <!-- 주간/월간 요약 -->
           <template v-else>
@@ -161,7 +170,7 @@
         <div v-if="currentView === 'daily'" class="space-y-6">
           <template v-if="hasAnyRecordsToday">
             <div v-for="meal in mealTypes" :key="meal.name">
-              <div v-if="getRecordsByMealType(meal.name).length > 0" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
+              <div v-if="getRecordsByMealType(meal.apiValue).length > 0" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
                 <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
                   <div class="flex items-center mb-4">
                     <div :class="`w-12 h-12 rounded-full flex items-center justify-center mr-4 bg-${meal.color}-100`">
@@ -169,19 +178,19 @@
                     </div>
                     <div>
                       <h3 class="text-xl font-semibold text-gray-800">{{ meal.name }}</h3>
-                      <p class="text-sm text-gray-500">{{ getMealTotalCalories(meal.name) }} kcal</p>
+                      <p class="text-sm text-gray-500">{{ getMealTotalCalories(meal.apiValue) }} kcal</p>
                     </div>
                   </div>
                   <ul class="space-y-3">
-                    <li v-for="record in getRecordsByMealType(meal.name)" :key="record.id" class="flex justify-between items-center group p-2 -m-2 rounded-lg hover:bg-white/50">
-                      <span class="text-gray-700">{{ record.food }}</span>
+                    <li v-for="record in getRecordsByMealType(meal.apiValue)" :key="record.dietId" class="flex justify-between items-center group p-2 -m-2 rounded-lg hover:bg-white/50">
+                      <span class="text-gray-700">{{ record.foodName }}</span>
                       <div class="flex items-center space-x-3">
                         <span class="text-gray-600 font-medium">{{ record.kcal }} kcal</span>
                         <div class="transition-opacity">
                           <button @click="openEditModal(record)" class="text-gray-400 hover:text-orange-600 p-1">
                             <Pencil class="w-4 h-4" />
                           </button>
-                          <button @click="handleDelete(record.id)" class="text-gray-400 hover:text-red-600 p-1">
+                          <button @click="handleDelete(record.dietId)" class="text-gray-400 hover:text-red-600 p-1">
                             <Trash2 class="w-4 h-4" />
                           </button>
                         </div>
@@ -304,15 +313,18 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import apiClient, { fetchDietStreak, getMealRecommendations, getAIDietReport } from '../../../api'
+import { useRouter } from 'vue-router'
+import apiClient, { getDietLogs, fetchDietStreak, getMealRecommendations, getAIDietReport } from '../../../api'
 import { Plus, ChevronLeft, ChevronRight, Sunrise, Sunset, Moon, Utensils, Pencil, Trash2, Trophy, Sparkles, Share2 } from 'lucide-vue-next'
 import DietModal from '../components/DietModal.vue'
 import WaterTracker from '@/components/dashboard/WaterTracker.vue';
 import DietReportCard from '../components/DietReportCard.vue'; // Import DietReportCard
 import AIRecommender from '@/components/dashboard/AIRecommender.vue'; // Import AIRecommender
 
+const router = useRouter();
 const isModalOpen = ref(false);
 const selectedRecord = ref(null);
+const dailySummaryData = ref(null);
 
 const currentDate = ref(new Date());
 const currentView = ref('daily');
@@ -323,13 +335,13 @@ const views = [
 ];
 
 const mealTypes = [
-  { name: '아침', icon: Sunrise, color: 'yellow' },
-  { name: '점심', icon: Sunset, color: 'orange' },
-  { name: '저녁', icon: Moon, color: 'blue' },
-  { name: '간식', icon: Utensils, color: 'green' },
+  { name: '아침', apiValue: 'BREAKFAST', icon: Sunrise, color: 'yellow' },
+  { name: '점심', apiValue: 'LUNCH', icon: Sunset, color: 'orange' },
+  { name: '저녁', apiValue: 'DINNER', icon: Moon, color: 'blue' },
+  { name: '간식', apiValue: 'SNACK', icon: Utensils, color: 'green' },
 ];
 
-const toYYYYMMDD = (date) => date.toISOString().slice(0, 10);
+import { toYYYYMMDD } from '../../../utils/date';
 
 const dietRecords = ref([]);
 const dietStreak = ref({ current_streak: null, longest_streak: null });
@@ -374,13 +386,15 @@ const currentSubTabTitle = computed(() => {
   return activeTab ? activeTab.name : '';
 });
 
-// Nutrient data (placeholders)
-const currentCarbs = ref(180);
-const targetCarbs = ref(250);
-const currentProtein = ref(95);
-const targetProtein = ref(120);
-const currentFat = ref(40);
-const targetFat = ref(60);
+// Nutrient data from API
+const currentCarbs = computed(() => dailySummaryData.value?.totalCarbs || 0);
+const currentProtein = computed(() => dailySummaryData.value?.totalProtein || 0);
+const currentFat = computed(() => dailySummaryData.value?.totalFat || 0);
+
+// TODO: Fetch target nutrients from user's profile
+const targetCarbs = ref(250); // Placeholder
+const targetProtein = ref(120); // Placeholder
+const targetFat = ref(60); // Placeholder
 
 const carbProgress = computed(() => (currentCarbs.value / targetCarbs.value) * 100);
 const proteinProgress = computed(() => (currentProtein.value / targetProtein.value) * 100);
@@ -405,15 +419,23 @@ const fetchDietData = async () => {
       const month = (currentDate.value.getMonth() + 1).toString().padStart(2, '0');
       params = { month: `${year}-${month}` };
     }
-    const response = await apiClient.get(`/diet-logs/me`, { params });
-    dietRecords.value = response.data || [];
+
+    const responseData = await getDietLogs(params);
+
+    if (currentView.value === 'daily') {
+        dailySummaryData.value = responseData;
+        dietRecords.value = responseData.dietList || [];
+    } else { // weekly or monthly
+        dailySummaryData.value = null; // Clear daily summary
+        dietRecords.value = responseData; // Expects an array
+    }
 
     const streakResponse = await fetchDietStreak();
     dietStreak.value = streakResponse;
 
     if (currentView.value === 'daily' && isToday(currentDate.value)) {
       const now = new Date();
-      const eatenMeals = dietRecords.value.filter(record => new Date(`${record.date}T${record.time || '00:00:00'}`) <= now);
+      const eatenMeals = (dailySummaryData.value?.dietList || []).filter(record => new Date(`${record.date}T${record.time || '00:00:00'}`) <= now);
       // Fetch Meal Recommendations
       const recommendations = await getMealRecommendations({
         current_date: toYYYYMMDD(now),
@@ -476,18 +498,23 @@ const getRecordsByMealType = (mealType) => {
 };
 
 const getMealTotalCalories = (mealType) => {
-  return getRecordsByMealType(mealType).reduce((total, record) => total + record.calories, 0);
+  return getRecordsByMealType(mealType).reduce((total, record) => total + (record.kcal || 0), 0);
 };
 
 const dailySummary = computed(() => {
-  const dailyRecords = dietRecords.value.filter(r => r.date === toYYYYMMDD(currentDate.value));
-  const totalCalories = dailyRecords.reduce((sum, r) => sum + r.calories, 0);
-  const mealCount = new Set(dailyRecords.map(r => r.mealType)).size;
-  return { totalCalories, mealCount };
+  if (currentView.value === 'daily' && dailySummaryData.value) {
+    return {
+      totalCalories: dailySummaryData.value.totalCalories || 0,
+      totalMealCount: dailySummaryData.value.totalMealCount || 0,
+      totalSnackCount: dailySummaryData.value.totalSnackCount || 0,
+    };
+  }
+  // 일별 데이터가 없거나 다른 보기일 경우의 기본값
+  return { totalCalories: 0, totalMealCount: 0, totalSnackCount: 0 };
 });
 
 const hasAnyRecordsToday = computed(() => {
-  return dietRecords.value.filter(r => r.date === toYYYYMMDD(currentDate.value)).length > 0;
+  return dietRecords.value.length > 0;
 });
 
 const periodSummary = computed(() => {
