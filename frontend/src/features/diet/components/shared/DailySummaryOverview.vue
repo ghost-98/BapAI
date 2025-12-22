@@ -111,9 +111,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import WaterTracker from '@/components/dashboard/WaterTracker.vue';
 import { Sparkles, Wheat, Beef, Nut } from 'lucide-vue-next'; // Icons for macros
+import { getHealthAnalysis } from '@/api';
 
 const props = defineProps({
   dailySummaryData: Object,
@@ -134,22 +135,42 @@ const waterGoal = computed(() => props.dailySummaryData?.waterGoal || 8);
 const totalMealCount = computed(() => props.dailySummaryData?.totalMealCount || 0);
 const totalSnackCount = computed(() => props.dailySummaryData?.totalSnackCount || 0);
 
-// TODO: Fetch target nutrients from user's profile or settings
-const targetCalories = 2200; // Placeholder
-const targetCarbs = 250; // Placeholder
-const targetProtein = 120; // Placeholder
-const targetFat = 60; // Placeholder
+// Reactive refs for target nutrients
+const targetCalories = ref(2000); // Default value
+const targetCarbs = ref(250); // Default value
+const targetProtein = ref(120); // Default value
+const targetFat = ref(60); // Default value
+
+// Fetch target nutrients on component mount
+onMounted(async () => {
+  try {
+    const data = await getHealthAnalysis();
+    if (data) {
+      targetCalories.value = data.recCalories || targetCalories.value;
+      targetCarbs.value = data.recCarbs || targetCarbs.value;
+      targetProtein.value = data.recProtein || targetProtein.value;
+      targetFat.value = data.recFat || targetFat.value;
+    }
+  } catch (error) {
+    console.error("Failed to fetch health analysis data:", error);
+    // Keep default values on error
+  }
+});
+
 
 // Circular progress bar calculations
 const radius = 40;
 const circumference = 2 * Math.PI * radius;
-const calorieProgress = computed(() => Math.min(100, (totalCalories.value / targetCalories) * 100));
+const calorieProgress = computed(() => {
+  if (targetCalories.value === 0) return 0;
+  return Math.min(100, (totalCalories.value / targetCalories.value) * 100)
+});
 const calorieDashoffset = computed(() => circumference - (calorieProgress.value / 100) * circumference);
 
 const macronutrients = computed(() => [
-  { name: '탄수화물', current: currentCarbs.value, target: targetCarbs, icon: Wheat, color: 'amber' },
-  { name: '단백질', current: currentProtein.value, target: targetProtein, icon: Beef, color: 'rose' },
-  { name: '지방', current: currentFat.value, target: targetFat, icon: Nut, color: 'blue' },
+  { name: '탄수화물', current: currentCarbs.value, target: targetCarbs.value, icon: Wheat, color: 'amber' },
+  { name: '단백질', current: currentProtein.value, target: targetProtein.value, icon: Beef, color: 'rose' },
+  { name: '지방', current: currentFat.value, target: targetFat.value, icon: Nut, color: 'blue' },
 ]);
 </script>
 

@@ -1,7 +1,7 @@
-import axios from 'axios'
-import router from '../router' // 라우터 import
-import { useAuthStore } from '../stores/auth' // Pinia auth store 임포트
-import { useNotificationStore } from '../stores/notification' // Pinia notification store 임포트
+import axios from 'axios';
+import router from '../router';
+import { useAuthStore } from '../stores/auth';
+import { useNotificationStore } from '../stores/notification'; 
 
 // JSON용 Axios 인스턴스 생성
 const apiClient = axios.create({
@@ -11,7 +11,7 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': '69420' // ngrok으로 서버 띄울때만
   }
-})
+});
 
 // Multipart/form-data용 Axios 인스턴스 생성
 export const apiClientForMultipart = axios.create({
@@ -27,62 +27,128 @@ export const apiClientForMultipart = axios.create({
 const requestInterceptor = (config) => {
   const authStore = useAuthStore();
   if (authStore.accessToken) {
-    config.headers['Authorization'] = `Bearer ${authStore.accessToken}`
+    config.headers['Authorization'] = `Bearer ${authStore.accessToken}`;
   }
-  return config
+  return config;
 };
 
 apiClient.interceptors.request.use(requestInterceptor);
 apiClientForMultipart.interceptors.request.use(requestInterceptor);
 
+// --- 토큰 갱신 로직 ---
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+// --- /토큰 갱신 로직 ---
 
 // 응답 인터셉터 (두 클라이언트에 모두 적용)
 const responseInterceptor = async (error) => {
-  const originalRequest = error.config
-  const authStore = useAuthStore();
+  const originalRequest = error.config;
   const notificationStore = useNotificationStore();
-  
+
   if (error.response && error.response.status === 401 && !originalRequest._retry) {
-    originalRequest._retry = true
-
-    try {
-      const refreshToken = authStore.refreshToken
-      if (!refreshToken) throw new Error('리프레시 토큰이 없습니다.')
-
-      const response = await axios.post(import.meta.env.VITE_API_BASE_URL + '/auth/refresh', { refreshToken })
-      
-      const newAccessToken = response.data.access
-      const newRefreshToken = response.data.refresh
-      
-      authStore.setTokens(newAccessToken, newRefreshToken, true);
-
-      originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`
-      
-      // 원래 요청을 다시 시도 (원래 사용했던 클라이언트로)
-      if (originalRequest.headers['Content-Type'] === 'multipart/form-data') {
-        return apiClientForMultipart(originalRequest)
-      }
-      return apiClient(originalRequest)
-
-    } catch (refreshError) {
-      console.error('토큰 재발급 실패:', refreshError)
-      authStore.clearAuth();
-      
-      router.push('/login').then(() => {
-        notificationStore.showNotification('세션이 만료되었습니다. 다시 로그인해주세요.', 'error');
+    console.log('DEBUG: 401 에러 발생. 토큰 갱신 프로세스 시작.', originalRequest.url);
+    if (isRefreshing) {
+      console.log('DEBUG: 이미 토큰 갱신 진행 중. 요청을 큐에 추가.');
+      return new Promise(function (resolve, reject) {
+        failedQueue.push({ resolve, reject });
       })
-
-      return Promise.reject(refreshError)
+        .then(token => {
+          originalRequest.headers['Authorization'] = 'Bearer ' + token;
+          console.log('DEBUG: 큐에서 꺼낸 요청 재시도.', originalRequest.url);
+          // 원래 요청을 다시 시도 (원래 사용했던 클라이언트로)
+          if (originalRequest.headers['Content-Type'] === 'multipart/form-data') {
+            return apiClientForMultipart(originalRequest);
+          }
+          return apiClient(originalRequest);
+        })
+        .catch(err => {
+          return Promise.reject(err);
+        });
     }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    const authStore = useAuthStore();
+    const refreshTokenValue = authStore.refreshToken;
+
+    if (!refreshTokenValue) {
+      console.error('DEBUG: 리프레시 토큰이 없습니다. 강제 로그아웃.');
+      authStore.clearAuth();
+      router.push('/login').then(() => {
+        notificationStore.showNotification('세션 정보가 없습니다. 다시 로그인해주세요.', 'error');
+      });
+      isRefreshing = false;
+      return Promise.reject(new Error('No refresh token available'));
+    }
+    
+    return new Promise((resolve, reject) => {
+      console.log('DEBUG: /auth/refresh API 호출 시작.');
+      axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/refresh`, { refreshToken: refreshTokenValue })
+        .then(response => {
+          console.log('DEBUG: /auth/refresh API 호출 성공.');
+          const newAccessToken = response.data.access;
+          const newRefreshToken = response.data.refresh;
+
+          // --- 디버깅 로그 추가 ---
+          console.log('DEBUG: 새로 받은 Access Token:', newAccessToken);
+          // --------------------
+
+          authStore.setTokens(newAccessToken, newRefreshToken, true);
+
+          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+          
+          // --- 디버깅 로그 추가 ---
+          console.log('DEBUG: 재요청 직전 헤더:', originalRequest.headers);
+          // --------------------
+          
+          processQueue(null, newAccessToken);
+
+          // 원래 요청을 다시 시도 (원래 사용했던 클라이언트로)
+          if (originalRequest.headers['Content-Type'] === 'multipart/form-data') {
+            resolve(apiClientForMultipart(originalRequest));
+          } else {
+            resolve(apiClient(originalRequest));
+          }
+        })
+        .catch(refreshError => {
+          console.error('DEBUG: 토큰 재발급 실패:', refreshError);
+          processQueue(refreshError, null);
+          authStore.clearAuth();
+          router.push('/login').then(() => {
+            notificationStore.showNotification('세션이 만료되었습니다. 다시 로그인해주세요.', 'error');
+          });
+          reject(refreshError);
+        })
+        .finally(() => {
+          console.log('DEBUG: 토큰 갱신 프로세스 종료.');
+          isRefreshing = false;
+        });
+    });
   }
-  
+
+  if (error.response && error.response.status === 401 && originalRequest._retry) {
+    console.error('DEBUG: 토큰 갱신 후 재요청했으나 또 401 에러 발생!', originalRequest.url);
+  }
+
   if (error.response && error.response.data && error.response.data.message) {
-    notificationStore.showNotification(error.response.data.message, 'error');
-  } else if (error.message) {
+    // notificationStore.showNotification(error.response.data.message, 'error');
+  } else if (error.message && !error.response) { // 응답이 없는 네트워크 오류 등
     notificationStore.showNotification('네트워크 오류가 발생했습니다: ' + error.message, 'error');
   }
 
-  return Promise.reject(error)
+  return Promise.reject(error);
 };
 
 apiClient.interceptors.response.use((response) => response, responseInterceptor);
@@ -256,7 +322,8 @@ export const fetchGroupBoardById = async (groupId, boardId) => {
   try {
     const response = await apiClient.get(`/groups/${groupId}/boards/${boardId}`);
     return response.data;
-  } catch (error) {
+  } catch (error)
+{
     console.error(`그룹 ${groupId}의 게시물 ${boardId}를 불러오는 데 실패했습니다:`, error);
     throw error;
   }
@@ -312,4 +379,14 @@ export const updateWaterCount = async (date, type) => {
   }
 };
 
-export default apiClient
+export const getHealthAnalysis = async () => {
+  try {
+    const response = await apiClient.get(`/health/analyze/me`);
+    return response.data;
+  } catch (error) {
+    console.error('건강 분석 데이터 불러오기 실패:', error);
+    throw error;
+  }
+};
+
+export default apiClient;
