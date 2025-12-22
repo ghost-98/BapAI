@@ -221,6 +221,16 @@ export const joinGroupApi = async (groupId) => {
   }
 };
 
+export const leaveGroupApi = async (groupId) => {
+  try {
+    const response = await apiClient.delete(`/groups/${groupId}/leave`);
+    return response.data;
+  } catch (error) {
+    console.error('그룹 탈퇴 실패:', error);
+    throw error;
+  }
+};
+
 export const fetchAvailableTags = async () => {
   try {
     const response = await apiClient.get('/groups/tags');

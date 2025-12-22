@@ -79,7 +79,7 @@
       <!-- 그룹 목록 -->
       <div>
         <div v-if="activeTab === 'all'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="group in allGroups" :key="group.id" @click="goToGroupDetail(group.id)" class="group-card-outer">
+          <div v-for="group in allGroups" :key="group.groupId" @click="goToGroupDetail(group.groupId)" class="group-card-outer">
             <div class="group-card-inner flex flex-col justify-between h-full">
               <div class="mb-4">
                 <div class="flex items-center justify-between mb-2">
@@ -104,7 +104,7 @@
                   <Users class="w-4 h-4" />
                   <span>{{ group.memberCount }} / {{ group.maxMember }}명</span>
                 </div>
-                <button v-if="!group.isJoined" @click.stop="joinGroup(group.id)" class="px-4 py-1.5 bg-orange-500 text-white rounded-full text-xs font-semibold hover:bg-orange-600 transition-all">
+                <button v-if="!group.isJoined" @click.stop="joinGroup(group.groupId)" class="px-4 py-1.5 bg-orange-500 text-white rounded-full text-xs font-semibold hover:bg-orange-600 transition-all">
                   참여하기
                 </button>
                 <span v-else class="text-green-600 font-semibold">참여중</span>
@@ -115,7 +115,7 @@
         </div>
 
         <div v-if="activeTab === 'my'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="group in myGroups" :key="group.id" @click="goToGroupDetail(group.id)" class="group-card-outer">
+          <div v-for="group in myGroups" :key="group.groupId" @click="goToGroupDetail(group.groupId)" class="group-card-outer">
             <div class="group-card-inner flex flex-col justify-between h-full">
               <div class="mb-4">
                 <div class="flex items-center justify-between mb-2">
@@ -234,7 +234,7 @@ const fetchAllGroups = async () => {
 };
 
 const loadMyGroupsData = async () => {
-  console.log('Fetching my groups from /groups/my...');
+  console.log('Fetching my groups from /groups/me...');
   try {
     const response = await fetchMyGroups(); // API 함수 호출
     myGroups.value = response;
@@ -312,7 +312,7 @@ const joinGroup = async (groupId) => {
     notificationStore.showNotification('그룹에 성공적으로 참여했습니다!', 'success');
     
     // Update local data
-    const groupIndex = allGroups.value.findIndex(g => g.id === groupId);
+    const groupIndex = allGroups.value.findIndex(g => g.groupId === groupId);
     if (groupIndex !== -1) {
       const joinedGroup = { ...allGroups.value[groupIndex], isJoined: true, memberCount: allGroups.value[groupIndex].memberCount + 1 };
       allGroups.value.splice(groupIndex, 1, joinedGroup);

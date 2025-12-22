@@ -21,6 +21,12 @@
             #{{ tag }}
           </span>
         </div>
+        <div class="mt-6 flex flex-wrap gap-4 items-center">
+            <button @click="handleLeaveGroup" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium shadow-lg shadow-red-500/30 transition-all flex items-center gap-2">
+                <LogOut class="w-5 h-5" />
+                <span>그룹 탈퇴</span>
+            </button>
+        </div>
       </div>
 
       <!-- 탭 네비게이션 -->
@@ -58,6 +64,11 @@
         <!-- 게시판 탭 -->
         <div v-if="activeTab === 'board'" class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-md border border-gray-200/80 p-6">
           <GroupBoard />
+        </div>
+        
+        <!-- 그룹 관리 탭 -->
+        <div v-if="activeTab === 'management'">
+          <GroupManagement :group-id="groupId" @group-updated="fetchGroupDetails" />
         </div>
 
         <!-- 랭킹 탭 -->
@@ -132,29 +143,29 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { Users, LayoutDashboard, MessageSquare, Trophy, ShieldCheck, Loader2, AlertCircle, Settings } from 'lucide-vue-next';
+import { useRoute, useRouter } from 'vue-router';
+import { LayoutDashboard, MessageSquare, Trophy, ShieldCheck, Loader2, AlertCircle, Settings, LogOut } from 'lucide-vue-next';
 import GroupBoard from '../components/GroupBoard.vue';
 import GroupDashboard from '@/features/group/components/GroupDashboard.vue';
-import GroupManagement from '@/features/group/components/GroupManagement.vue'; // New import
-import { fetchGroupById, updateGroup } from '@/api'; // Import fetchGroupById and updateGroup
-import { useNotificationStore } from '@/stores/notification'; // Import notification store
+import GroupManagement from '@/features/group/components/GroupManagement.vue';
+import { fetchGroupById, updateGroup, leaveGroupApi } from '@/api';
+import { useAuthStore } from '@/stores/auth';
+import { useNotificationStore } from '@/stores/notification';
 
 const route = useRoute();
+const router = useRouter();
 const groupId = computed(() => route.params.groupId);
 const activeTab = ref('dashboard');
 
 const group = ref(null);
 const loading = ref(true);
 const error = ref(null);
-const notificationStore = useNotificationStore(); // Initialize notification store
-
-// Mock current user ID for leader check (replace with actual auth store user ID)
-const currentUserId = 1; 
+const notificationStore = useNotificationStore();
+const authStore = useAuthStore();
+const currentUserId = computed(() => authStore.user?.userId);
 
 const isLeader = computed(() => {
-  // Assuming group.leaderId exists and matches currentUserId
-  return group.value && group.value.leaderId === currentUserId;
+  return group.value && group.value.leaderId === currentUserId.value;
 });
 
 const tabs = computed(() => {
@@ -174,14 +185,10 @@ const fetchGroupDetails = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await fetchGroupById(groupId.value); // fetchGroupById 사용
-    group.value = response; // 단일 그룹 객체이므로 바로 할당
+    const response = await fetchGroupById(groupId.value);
+    group.value = response;
     if (!group.value) {
       error.value = '그룹을 찾을 수 없습니다.';
-    }
-    // Mock leaderId for demonstration
-    if (group.value) {
-      group.value.leaderId = 1; // Assuming user with ID 1 is the leader for this group
     }
   } catch (err) {
     console.error('Failed to fetch group details:', err);
@@ -195,15 +202,27 @@ const handleGroupUpdate = async (updatedGroupData) => {
   try {
     await updateGroup(groupId.value, updatedGroupData);
     notificationStore.showNotification('그룹 정보가 성공적으로 업데이트되었습니다.', 'success');
-    fetchGroupDetails(); // Re-fetch group details to update UI
+    fetchGroupDetails();
   } catch (err) {
     console.error('Failed to update group:', err);
     notificationStore.showNotification('그룹 정보 업데이트에 실패했습니다.', 'error');
   }
 };
 
+const handleLeaveGroup = async () => {
+    if (confirm('정말로 그룹을 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+        try {
+            await leaveGroupApi(groupId.value);
+            notificationStore.showNotification('그룹에서 성공적으로 탈퇴했습니다.', 'success');
+            router.push({ name: 'GroupList' });
+        } catch (err) {
+            console.error('Failed to leave group:', err);
+            notificationStore.showNotification('그룹 탈퇴에 실패했습니다. 다시 시도해주세요.', 'error');
+        }
+    }
+};
+
 // --- 예시 데이터 (Placeholder Data) ---
-// These will eventually be fetched from APIs or derived from group data
 const ranking = ref([
   { id: 1, name: '열정적인 다이어터', score: 98, isCurrentUser: false },
   { id: 2, name: '건강지킴이', score: 95, isCurrentUser: false },
