@@ -20,8 +20,11 @@
                   <div v-for="record in getRecordsByMealType(meal.apiValue)" :key="record.dietId" 
                        class="bg-white/70 backdrop-blur-sm border border-white/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300 flex items-center justify-between">
                     <div class="flex items-center gap-4 flex-grow">
-                      <div class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <!-- Placeholder for food image or icon -->
+                      <div class="w-14 h-14 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+                        <img v-if="record.imgUrl" :src="record.imgUrl" :alt="record.foodName" class="w-full h-full object-cover">
+                        <div v-else class="w-full h-full flex items-center justify-center bg-gray-100">
+                          <Utensils class="w-8 h-8 text-gray-400" />
+                        </div>
                       </div>
                       <div class="flex-grow">
                         <p class="font-bold text-gray-800 text-lg flex items-center gap-2">{{ record.foodName }} <span class="text-sm font-normal text-gray-500">{{ record.time }}</span></p>
@@ -59,7 +62,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { Pencil, Trash2 } from 'lucide-vue-next';
+import { Pencil, Trash2, Utensils } from 'lucide-vue-next';
 
 const props = defineProps({
   records: {
