@@ -1,7 +1,7 @@
 import axios from 'axios';
-import router from '../router';
-import { useAuthStore } from '../stores/auth';
-import { useNotificationStore } from '../stores/notification'; 
+import router from '../router'; // 라우터 import
+import { useAuthStore } from '../stores/auth'; // Pinia auth store 임포트
+import { useNotificationStore } from '../stores/notification'; // Pinia notification store 임포트
 
 // JSON용 Axios 인스턴스 생성
 const apiClient = axios.create({
@@ -94,24 +94,14 @@ const responseInterceptor = async (error) => {
     }
     
     return new Promise((resolve, reject) => {
-      console.log('DEBUG: /auth/refresh API 호출 시작.');
       axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/refresh`, { refreshToken: refreshTokenValue })
         .then(response => {
-          console.log('DEBUG: /auth/refresh API 호출 성공.');
-          const newAccessToken = response.data.access;
-          const newRefreshToken = response.data.refresh;
-
-          // --- 디버깅 로그 추가 ---
-          console.log('DEBUG: 새로 받은 Access Token:', newAccessToken);
-          // --------------------
+          const newAccessToken = response.data.accessToken;
+          const newRefreshToken = response.data.refreshToken;
 
           authStore.setTokens(newAccessToken, newRefreshToken, true);
 
           originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-          
-          // --- 디버깅 로그 추가 ---
-          console.log('DEBUG: 재요청 직전 헤더:', originalRequest.headers);
-          // --------------------
           
           processQueue(null, newAccessToken);
 
