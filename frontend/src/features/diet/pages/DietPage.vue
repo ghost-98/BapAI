@@ -1,58 +1,28 @@
 <template>
   <main class="mx-auto max-w-7xl px-4 sm:px-6 py-12 space-y-8">
     <!-- Header -->
-    <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50 flex items-center justify-between">
-      <div>
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2 tracking-tight">식단 기록</h1>
-        <p class="text-gray-600 text-lg md:text-xl">기록된 식단을 확인하고 관리합니다.</p>
-      </div>
-      <button @click="openAddModal" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2 transform hover:scale-105">
-        <Plus class="w-5 h-5" />
-        새 식단
-      </button>
-    </div>
+    <DietHeader @open-add-modal="openAddModal" />
 
     <!-- Main Content Container -->
     <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50 space-y-6">
       
-      <!-- Streak and Add Button -->
-      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-        <div v-if="dietStreak.current_streak !== null" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
-          <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-white/50 flex items-center">
-            <Trophy class="w-8 h-8 text-orange-500 mr-4 flex-shrink-0" />
-            <div>
-              <p class="text-base font-semibold text-gray-800">식단 기록 연속 {{ dietStreak.currentStreak }}일째!</p>
-              <p class="text-sm text-gray-500">최고 기록: {{ dietStreak.longestStreak }}일</p>
-            </div>
+      <!-- Streak -->
+      <div v-if="dietStreak.current_streak !== null" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
+        <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-white/50 flex items-center">
+          <Trophy class="w-8 h-8 text-orange-500 mr-4 flex-shrink-0" />
+          <div>
+            <p class="text-base font-semibold text-gray-800">식단 기록 연속 {{ dietStreak.currentStreak }}일째!</p>
+            <p class="text-sm text-gray-500">최고 기록: {{ dietStreak.longestStreak }}일</p>
           </div>
         </div>
       </div>
 
       <!-- View Options & Period Navigator -->
-      <div class="flex items-center justify-between bg-white/50 backdrop-blur-sm rounded-2xl p-2 border border-gray-200/80 shadow-sm mb-4">
-        <div class="bg-gray-100 p-1 rounded-lg">
-          <button 
-            v-for="view in views" 
-            :key="view.id" 
-            @click="currentView = view.id"
-            :class="[
-              'px-4 py-1.5 rounded-md text-sm font-medium transition',
-              currentView === view.id ? 'bg-white text-orange-600 shadow' : 'text-gray-600 hover:bg-gray-200'
-            ]"
-          >
-            {{ view.name }}
-          </button>
-        </div>
-        <div class="flex items-center space-x-2">
-          <button @click="changePeriod(-1)" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
-            <ChevronLeft class="w-5 h-5 text-gray-600" />
-          </button>
-          <span class="text-lg font-semibold text-gray-700 w-48 text-center">{{ currentPeriod }}</span>
-          <button @click="changePeriod(1)" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
-            <ChevronRight class="w-5 h-5 text-gray-600" />
-          </button>
-        </div>
-      </div>
+      <DietViewChanger 
+        v-model:currentView="currentView" 
+        :current-period="currentPeriod"
+        @change-period="changePeriod"
+      />
 
       <!-- Sub-section Tabs -->
       <div class="flex justify-start border-b border-gray-200/80">
@@ -71,118 +41,175 @@
 
       <!-- 요약 탭 -->
       <div v-if="activeSubTab === 'summary'">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">일일 요약</h2>
-        <div class="grid grid-cols-1">
-          <!-- 일일 요약 -->
-          <template v-if="currentView === 'daily'">
-            <DailySummaryOverview
-              :daily-summary-data="dailySummaryData"
-              :ai-diet-report="aiDietReport"
-              :meal-recommendations="mealRecommendations"
-              :date="toYYYYMMDD(currentDate)"
-              @data-changed="fetchDietData"
-            />
-          </template>
-          <!-- 주간/월간 요약 -->
-          <template v-else>
-            <div class="lg:col-span-3 p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
-              <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 flex justify-around items-center">
-                <div v-if="currentView === 'monthly'" class="text-center">
-                  <p class="text-sm text-gray-500">기간</p>
-                  <p class="text-2xl font-bold text-gray-800">{{ periodSummary.periodDays }}일</p>
+        <!-- 일일 요약 -->
+        <template v-if="currentView === 'daily'">
+          <h2 class="text-2xl font-bold text-gray-800 mb-4">일일 요약</h2>
+          <DailySummaryOverview
+            :daily-summary-data="dailySummaryData"
+            :ai-diet-report="aiDietReport"
+            :meal-recommendations="mealRecommendations"
+            :date="toYYYYMMDD(currentDate)"
+            @data-changed="fetchDietData"
+          />
+        </template>
+        <!-- 주간 요약 -->
+        <template v-if="currentView === 'weekly'">
+            <div class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
+                <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">주간 요약</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg text-center">
+                          <p class="text-sm text-gray-500">총 섭취 칼로리</p>
+                          <p class="text-3xl font-bold text-orange-600">{{ weeklyData.totalCalories }} <span class="text-xl font-medium">kcal</span></p>
+                      </div>
+                      <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg text-center">
+                          <p class="text-sm text-gray-500">총 식사</p>
+                          <p class="text-3xl font-bold text-gray-800">{{ weeklyData.totalMealCount }} <span class="text-xl font-medium">끼</span></p>
+                      </div>
+                      <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg text-center">
+                          <p class="text-sm text-gray-500">총 간식</p>
+                          <p class="text-3xl font-bold text-gray-800">{{ weeklyData.totalSnackCount }} <span class="text-xl font-medium">회</span></p>
+                      </div>
+                      <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg text-center">
+                          <p class="text-sm text-gray-500">일 평균 칼로리</p>
+                          <p class="text-3xl font-bold text-gray-800">{{ Math.round(weeklyData.totalCalories / 7) }} <span class="text-xl font-medium">kcal</span></p>
+                      </div>
+                    </div>
+                    <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3">주간 다량 영양소</h3>
+                    <div class="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-gray-200/80">
+                        <div class="text-center">
+                        <p class="font-semibold text-gray-700 text-sm">총 탄수화물</p>
+                        <p class="text-lg font-bold text-gray-800">{{ weeklyData.totalCarbs.toFixed(0) }}g</p>
+                        </div>
+                        <div class="text-center">
+                        <p class="font-semibold text-gray-700 text-sm">총 단백질</p>
+                        <p class="text-lg font-bold text-gray-800">{{ weeklyData.totalProtein.toFixed(0) }}g</p>
+                        </div>
+                        <div class="text-center">
+                        <p class="font-semibold text-gray-700 text-sm">총 지방</p>
+                        <p class="text-lg font-bold text-gray-800">{{ weeklyData.totalFat.toFixed(0) }}g</p>
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-3">일 평균 다량 영양소</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="text-center">
+                        <p class="font-semibold text-gray-700 text-sm">탄수화물</p>
+                        <p class="text-lg font-bold text-gray-800">{{ (weeklyData.totalCarbs / 7).toFixed(0) }}g</p>
+                        </div>
+                        <div class="text-center">
+                        <p class="font-semibold text-gray-700 text-sm">단백질</p>
+                        <p class="text-lg font-bold text-gray-800">{{ (weeklyData.totalProtein / 7).toFixed(0) }}g</p>
+                        </div>
+                        <div class="text-center">
+                        <p class="font-semibold text-gray-700 text-sm">지방</p>
+                        <p class="text-lg font-bold text-gray-800">{{ (weeklyData.totalFat / 7).toFixed(0) }}g</p>
+                        </div>
+                    </div>
+                    </div>
                 </div>
-                <div class="text-center">
-                  <p class="text-sm text-gray-500">일 평균 칼로리</p>
-                  <p class="text-2xl font-bold text-orange-600">{{ periodSummary.avgCalories }} <span class="text-lg font-medium">kcal</span></p>
+            </div>
+        </template>
+        <!-- 월간 요약 -->
+        <template v-if="currentView === 'monthly'">
+          <div class="p-1 bg-gradient-to-br from-blue-200 to-indigo-200 rounded-3xl shadow-lg">
+            <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 space-y-6">
+              <h2 class="text-2xl font-bold text-gray-800 mb-4">월간 요약</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg text-center">
+                    <p class="text-sm text-gray-500">총 섭취 칼로리</p>
+                    <p class="text-3xl font-bold text-blue-600">{{ monthlySummaryForUI.totalCalories }} <span class="text-xl font-medium">kcal</span></p>
                 </div>
-                <div class="text-center">
-                  <p class="text-sm text-gray-500">총 기록한 끼니</p>
-                  <p class="text-2xl font-bold text-gray-800">{{ periodSummary.totalMeals }} <span class="text-lg font-medium">끼</span></p>
+                <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg text-center">
+                    <p class="text-sm text-gray-500">총 식사</p>
+                    <p class="text-3xl font-bold text-gray-800">{{ monthlySummaryForUI.totalMealCount }} <span class="text-xl font-medium">끼</span></p>
+                </div>
+                <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg text-center">
+                    <p class="text-sm text-gray-500">총 간식</p>
+                    <p class="text-3xl font-bold text-gray-800">{{ monthlySummaryForUI.totalSnackCount }} <span class="text-xl font-medium">회</span></p>
+                </div>
+                <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg text-center">
+                    <p class="text-sm text-gray-500">일 평균 칼로리</p>
+                    <p class="text-3xl font-bold text-gray-800">{{ monthlySummaryForUI.avgCalories }} <span class="text-xl font-medium">kcal</span></p>
+                </div>
+              </div>
+              <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg">
+                <h3 class="text-lg font-bold text-gray-800 mb-3">월간 다량 영양소</h3>
+                <div class="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-gray-200/80">
+                  <div class="text-center">
+                    <p class="font-semibold text-gray-700 text-sm">총 탄수화물</p>
+                    <p class="text-lg font-bold text-gray-800">{{ monthlySummaryForUI.totalCarbs.toFixed(0) }}g</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="font-semibold text-gray-700 text-sm">총 단백질</p>
+                    <p class="text-lg font-bold text-gray-800">{{ monthlySummaryForUI.totalProtein.toFixed(0) }}g</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="font-semibold text-gray-700 text-sm">총 지방</p>
+                    <p class="text-lg font-bold text-gray-800">{{ monthlySummaryForUI.totalFat.toFixed(0) }}g</p>
+                  </div>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-3">일 평균 다량 영양소</h3>
+                <div class="grid grid-cols-3 gap-4">
+                  <div class="text-center">
+                    <p class="font-semibold text-gray-700 text-sm">탄수화물</p>
+                    <p class="text-lg font-bold text-gray-800">{{ monthlySummaryForUI.avgCarbs }}g</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="font-semibold text-gray-700 text-sm">단백질</p>
+                    <p class="text-lg font-bold text-gray-800">{{ monthlySummaryForUI.avgProtein }}g</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="font-semibold text-gray-700 text-sm">지방</p>
+                    <p class="text-lg font-bold text-gray-800">{{ monthlySummaryForUI.avgFat }}g</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </template>
-        </div>
+          </div>
+        </template>
       </div>
 
-      <!-- Detailed Records Section -->
-      <div v-if="activeSubTab === 'records'">
+      <!-- Daily Records -->
+      <div v-if="currentView === 'daily' && activeSubTab === 'records'">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-bold text-gray-800">상세 식단 기록</h2>
-          <button v-if="currentView === 'daily' && hasAnyRecordsToday" @click="shareDietPost" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2 text-sm">
+          <button v-if="hasAnyRecordsToday" @click="shareDietPost" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2 text-sm">
             <Share2 class="w-4 h-4" />
             식단 공유
           </button>
         </div>
-
-        <!-- 일일 식단 기록 -->
-        <div v-if="currentView === 'daily'" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
-          <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <template v-if="hasAnyRecordsToday">
-                <div v-for="meal in mealTypes" :key="meal.name" class="col-span-1">
-                  <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50 space-y-4 h-full">
-                    <!-- Meal Header -->
-                    <div class="flex items-center justify-between pb-4 border-b border-gray-200/80">
-                      <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                        <component :is="meal.icon" :class="`w-7 h-7 text-${meal.color}-600`" />
-                        {{ meal.name }}
-                        <span class="text-lg text-gray-500 font-medium ml-2">{{ getMealTotalCalories(meal.apiValue) }} kcal</span>
-                      </h3>
-                    </div>
-                    <!-- Conditional content based on records -->
-                    <template v-if="getRecordsByMealType(meal.apiValue).length > 0">
-                      <!-- Record List -->
-                      <div class="space-y-3">
-                        <div v-for="record in getRecordsByMealType(meal.apiValue)" :key="record.dietId" 
-                             class="bg-white/70 backdrop-blur-sm border border-white/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300 flex items-center justify-between">
-                          <div class="flex items-center gap-4 flex-grow">
-                            <div class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <!-- Placeholder for food image or icon -->
-                            </div>
-                            <div class="flex-grow">
-                              <p class="font-bold text-gray-800 text-lg flex items-center gap-2">{{ record.foodName }} <span class="text-sm font-normal text-gray-500">{{ record.time }}</span></p>
-                              <p class="text-sm text-gray-600 font-semibold">{{ record.kcal.toFixed(0) }} kcal ({{ record.servings }}인분)</p>
-                              <div class="flex gap-3 text-xs text-gray-500 mt-1">
-                                <p>탄: {{ record.carbs.toFixed(1) }}g</p>
-                                <p>단: {{ record.protein.toFixed(1) }}g</p>
-                                <p>지: {{ record.fat.toFixed(1) }}g</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="flex flex-col items-end ml-4">
-                            <button @click="openEditModal(record)" class="p-2 text-gray-400 hover:text-orange-600 rounded-full hover:bg-gray-100"><Pencil class="w-4 h-4" /></button>
-                            <button @click="handleDelete(record.dietId)" class="p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100"><Trash2 class="w-4 h-4" /></button>
-                          </div>
-                        </div>
-                      </div>
-                    </template>
-                    <template v-else>
-                      <div class="text-center py-4 text-gray-500">
-                        <p>{{ meal.name }} 기록이 없습니다.</p>
-                      </div>
-                    </template>
-                  </div>
-                </div>
-              </template>
-              <div v-else class="text-center py-16">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                </svg>
-                <h3 class="mt-2 text-sm font-semibold text-gray-900">기록된 식단 없음</h3>
-                <p class="mt-1 text-sm text-gray-500">새 식단 기록 버튼을 눌러 추가해보세요!</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DailyRecordList 
+            :records="dailyFilteredRecords"
+            :meal-types="mealTypes"
+            @edit-record="openEditModal"
+            @delete-record="handleDelete"
+        />
       </div>
+      
+      <!-- Weekly Records -->
+      <WeeklyRecordList
+        v-if="currentView === 'weekly' && activeSubTab === 'daily_records_weekly'"
+        :weekly-data="weeklyData"
+        :meal-types="mealTypes"
+        @edit-record="openEditModal"
+        @delete-record="handleDelete"
+      />
+
+      <!-- Monthly Calendar -->
+      <MonthlyCalendar
+        v-if="currentView === 'monthly' && activeSubTab === 'calendar'"
+        :monthly-data="monthlyData"
+        @date-clicked="goToDate"
+      />
 
       <!-- AI 분석 Section -->
-      <div v-if="currentView === 'daily' && activeSubTab === 'ai_analysis'">
+      <div v-if="activeSubTab === 'ai_analysis'">
         <h2 class="text-xl font-bold text-gray-800 mb-4">{{ currentSubTabTitle }}</h2>
-        <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
+        
+        <!-- Daily AI Analysis -->
+        <div v-if="currentView === 'daily'" class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- AI 식단 추천 -->
             <div v-if="isToday(currentDate) && mealRecommendations.length > 0" class="p-1 bg-gradient-to-br from-purple-200 to-indigo-200 rounded-3xl shadow-lg">
               <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
                 <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
@@ -196,182 +223,23 @@
                 </ul>
               </div>
             </div>
-
-            <!-- AI 식단 리포트 -->
             <DietReportCard 
               v-if="isToday(currentDate)"
               :report="aiDietReport"
               :is-loading="isReportLoading"
               class="mb-0"
             />
-
-            
-          </div>
-        </div>
-      </div>
-
-      <!-- 주간 식단 기록 -->
-      <div v-if="currentView === 'weekly'">
-        <!-- Weekly Summary Tab Content -->
-        <div v-if="activeSubTab === 'summary'" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
-          <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 space-y-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">주간 요약</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <!-- Total Calories -->
-              <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg text-center">
-                <p class="text-sm text-gray-500">총 섭취 칼로리</p>
-                <p class="text-3xl font-bold text-orange-600">{{ weeklyData.totalCalories }} <span class="text-xl font-medium">kcal</span></p>
-              </div>
-              <!-- Total Meals -->
-              <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg text-center">
-                <p class="text-sm text-gray-500">총 기록한 끼니</p>
-                <p class="text-3xl font-bold text-gray-800">{{ weeklyData.totalMealCount }} <span class="text-xl font-medium">끼</span></p>
-              </div>
-              <!-- Average Daily Calories -->
-              <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg text-center">
-                <p class="text-sm text-gray-500">일 평균 칼로리</p>
-                <p class="text-3xl font-bold text-gray-800">{{ Math.round(weeklyData.totalCalories / 7) }} <span class="text-xl font-medium">kcal</span></p>
-              </div>
-            </div>
-            <!-- Weekly Macronutrients -->
-            <div class="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-4 shadow-lg">
-              <h3 class="text-lg font-bold text-gray-800 mb-3">주간 다량 영양소</h3>
-              <div class="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-gray-200/80">
-                <div class="text-center">
-                  <p class="font-semibold text-gray-700 text-sm">총 탄수화물</p>
-                  <p class="text-lg font-bold text-gray-800">{{ weeklyData.totalCarbs.toFixed(0) }}g</p>
-                </div>
-                <div class="text-center">
-                  <p class="font-semibold text-gray-700 text-sm">총 단백질</p>
-                  <p class="text-lg font-bold text-gray-800">{{ weeklyData.totalProtein.toFixed(0) }}g</p>
-                </div>
-                <div class="text-center">
-                  <p class="font-semibold text-gray-700 text-sm">총 지방</p>
-                  <p class="text-lg font-bold text-gray-800">{{ weeklyData.totalFat.toFixed(0) }}g</p>
-                </div>
-              </div>
-              <h3 class="text-lg font-bold text-gray-800 mb-3">일 평균 다량 영양소</h3>
-              <div class="grid grid-cols-3 gap-4">
-                <div class="text-center">
-                  <p class="font-semibold text-gray-700 text-sm">탄수화물</p>
-                  <p class="text-lg font-bold text-gray-800">{{ (weeklyData.totalCarbs / 7).toFixed(0) }}g</p>
-                </div>
-                <div class="text-center">
-                  <p class="font-semibold text-gray-700 text-sm">단백질</p>
-                  <p class="text-lg font-bold text-gray-800">{{ (weeklyData.totalProtein / 7).toFixed(0) }}g</p>
-                </div>
-                <div class="text-center">
-                  <p class="font-semibold text-gray-700 text-sm">지방</p>
-                  <p class="text-lg font-bold text-gray-800">{{ (weeklyData.totalFat / 7).toFixed(0) }}g</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
-        <!-- Daily Records within Weekly Tab Content -->
-        <div v-if="activeSubTab === 'daily_records_weekly'">
-          <div class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
-            <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 space-y-6">
-              <h2 class="text-2xl font-bold text-gray-800 mb-4">일별 기록</h2>
-              <!-- Day Selector -->
-              <div class="grid grid-cols-7 gap-2 mb-6">
-                <div v-for="dayIndex in 7" :key="dayIndex"
-                     @click="selectedDayInWeeklyView = weeklyData.dailyLogs[dayIndex]"
-                     :class="[
-                       'p-3 rounded-xl text-center cursor-pointer transition-all duration-200',
-                       'bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm',
-                       selectedDayInWeeklyView?.dateString === weeklyData.dailyLogs[dayIndex]?.dateString ? 'ring-2 ring-orange-500 scale-105' : 'hover:scale-105 hover:shadow-md'
-                     ]">
-                  <p class="text-sm font-medium" :class="weeklyData.dailyLogs[dayIndex]?.isToday ? 'text-orange-600' : 'text-gray-600'">
-                    {{ weeklyData.dailyLogs[dayIndex]?.dayName }}
-                  </p>
-                  <p class="text-xl font-bold" :class="weeklyData.dailyLogs[dayIndex]?.isToday ? 'text-orange-700' : 'text-gray-800'">
-                    {{ weeklyData.dailyLogs[dayIndex]?.dateNum }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Selected Day's Records -->
-              <div v-if="selectedDayInWeeklyView">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">{{ selectedDayInWeeklyView.dateString }} 식단</h3>
-                <template v-if="selectedDayInWeeklyView.dietList.length > 0">
-                  <div v-for="meal in mealTypes" :key="meal.name">
-                    <div v-if="selectedDayInWeeklyView.dietList.filter(r => r.mealType === meal.apiValue).length > 0"
-                         class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50 space-y-4 h-full mb-4">
-                      <!-- Meal Header -->
-                      <div class="flex items-center justify-between pb-4 border-b border-gray-200/80">
-                        <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                          <component :is="meal.icon" :class="`w-7 h-7 text-${meal.color}-600`" />
-                          {{ meal.name }}
-                          <span class="text-lg text-gray-500 font-medium ml-2">{{ selectedDayInWeeklyView.dietList.filter(r => r.mealType === meal.apiValue).reduce((total, record) => total + (record.kcal || 0), 0) }} kcal</span>
-                        </h3>
-                      </div>
-                      <!-- Record List -->
-                      <div class="space-y-3">
-                        <div v-for="record in selectedDayInWeeklyView.dietList.filter(r => r.mealType === meal.apiValue)" :key="record.dietId" 
-                             class="bg-white/70 backdrop-blur-sm border border-white/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300 flex items-center justify-between">
-                          <div class="flex items-center gap-4 flex-grow">
-                            <div class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <!-- Placeholder for food image or icon -->
-                            </div>
-                            <div class="flex-grow">
-                              <p class="font-bold text-gray-800 text-lg flex items-center gap-2">{{ record.foodName }} <span class="text-sm font-normal text-gray-500">{{ record.time }}</span></p>
-                              <p class="text-sm text-gray-600 font-semibold">{{ record.kcal.toFixed(0) }} kcal ({{ record.servings }}인분)</p>
-                              <div class="flex gap-3 text-xs text-gray-500 mt-1">
-                                <p>탄: {{ record.carbs.toFixed(1) }}g</p>
-                                <p>단: {{ record.protein.toFixed(1) }}g</p>
-                                <p>지: {{ record.fat.toFixed(1) }}g</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="flex flex-col items-end ml-4">
-                            <button @click="openEditModal(record)" class="p-2 text-gray-400 hover:text-orange-600 rounded-full hover:bg-gray-100"><Pencil class="w-4 h-4" /></button>
-                            <button @click="handleDelete(record.dietId)" class="p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100"><Trash2 class="w-4 h-4" /></button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-                <div v-else class="text-center py-16 bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-6 shadow-lg">
-                  <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                  </svg>
-                  <h3 class="mt-2 text-sm font-semibold text-gray-900">기록된 식단 없음</h3>
-                  <p class="mt-1 text-sm text-gray-500">선택된 날짜에 기록된 식단이 없습니다.</p>
-                </div>
-              </div>
-              <div v-else class="text-center py-16 bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-6 shadow-lg">
-                <h3 class="mt-2 text-xl font-semibold text-gray-900">요일을 선택하여 기록을 확인하세요.</h3>
-                <p class="mt-1 text-sm text-gray-500">위에서 요일을 클릭하면 해당 날짜의 식단 기록을 볼 수 있습니다.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Monthly View -->
-      <div v-if="currentView === 'monthly'" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
-        <div class="w-full bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-white/50">
-          <div class="grid grid-cols-7 text-center font-semibold text-sm text-gray-600 mb-2">
-              <div v-for="day in ['일', '월', '화', '수', '목', '금', '토']" :key="day">{{ day }}</div>
-          </div>
-          <div class="grid grid-cols-7 gap-1">
-              <div v-for="day in monthlyData" :key="day.dateString"
-                  @click="day.isCurrentMonth && goToDate(day.dateString)"
-                  :class="[
-                      'h-32 p-2 border rounded-lg flex flex-col', 
-                      day.isCurrentMonth ? 'bg-white/50 cursor-pointer hover:border-orange-400' : 'bg-gray-50/20',
-                      day.isToday ? 'border-orange-500 border-2' : 'border-transparent'
-                  ]">
-                  <p :class="['font-semibold', day.isCurrentMonth ? 'text-gray-700' : 'text-gray-400']">{{ day.dateNum }}</p>
-                  <div v-if="day.totalCalories > 0" class="mt-2 text-xs text-center">
-                      <p class="font-bold text-orange-700">{{ day.totalCalories }}</p>
-                      <p class="text-gray-500">kcal</p>
-                  </div>
-              </div>
-          </div>
+        <!-- Weekly/Monthly AI Analysis Placeholder -->
+        <div v-if="currentView === 'weekly' || currentView === 'monthly'" class="text-center py-16 bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
+          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2.25 2.25 0 003.182 0l-7.23-7.23a2.25 2.25 0 00-3.182 0l-7.23 7.23a2.25 2.25 0 003.182 3.182L12 11.818l7.428 3.61z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.364v11.272" />
+          </svg>
+          <h3 class="mt-2 text-sm font-semibold text-gray-900">분석 기능 준비중</h3>
+          <p class="mt-1 text-sm text-gray-500">{{ currentView === 'weekly' ? '주간' : '월간' }} 리포트 기능은 현재 준비중입니다.</p>
         </div>
       </div>
     </div>
@@ -390,26 +258,27 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import apiClient, { getDietLogs, fetchDietStreak, getMealRecommendations, getAIDietReport } from '../../../api'
-import { Plus, ChevronLeft, ChevronRight, Sunrise, Sunset, Moon, Utensils, Pencil, Trash2, Trophy, Share2 } from 'lucide-vue-next'
-import DietModal from '../components/DietModal.vue'
-import WaterTracker from '@/components/dashboard/WaterTracker.vue';
-import DietReportCard from '../components/DietReportCard.vue'; // Import DietReportCard
-import AIRecommender from '@/components/dashboard/AIRecommender.vue'; // Import AIRecommender
-import DailySummaryOverview from '../components/DailySummaryOverview.vue'; // Import new component
+import { Sunrise, Sunset, Moon, Utensils, Trophy, Share2, Sparkles, Flame, UtensilsCrossed, Cookie, Repeat, Wheat, Beef, Nut } from 'lucide-vue-next'
+import DietModal from '../components/modal/DietModal.vue'
+import DietReportCard from '../components/shared/DietReportCard.vue';
+import DailySummaryOverview from '../components/shared/DailySummaryOverview.vue';
+import DietHeader from '../components/page/DietHeader.vue';
+import DietViewChanger from '../components/page/DietViewChanger.vue';
+import DailyRecordList from '../components/page/DailyRecordList.vue';
+import WeeklyRecordList from '../components/page/WeeklyRecordList.vue';
+import MonthlyCalendar from '../components/page/MonthlyCalendar.vue';
+import MonthRecordList from '../components/page/MonthRecordList.vue';
+import { toYYYYMMDD } from '../../../utils/date';
 
 const router = useRouter();
 const isModalOpen = ref(false);
 const selectedRecord = ref(null);
 const dailySummaryData = ref(null);
-const selectedDayInWeeklyView = ref(null); // To store the selected day's data from weeklyData.dailyLogs
+const weeklySummaryData = ref(null);
+const monthlySummaryData = ref(null);
 
 const currentDate = ref(new Date());
 const currentView = ref('daily');
-const views = [
-  { id: 'daily', name: '일간' },
-  { id: 'weekly', name: '주간' },
-  { id: 'monthly', name: '월간' },
-];
 
 const mealTypes = [
   { name: '아침', apiValue: 'BREAKFAST', icon: Sunrise, color: 'yellow' },
@@ -418,48 +287,43 @@ const mealTypes = [
   { name: '간식', apiValue: 'SNACK', icon: Utensils, color: 'green' },
 ];
 
-import { toYYYYMMDD } from '../../../utils/date';
-
 const dietRecords = ref([]);
 const dietStreak = ref({ current_streak: null, longest_streak: null });
 const mealRecommendations = ref([]);
-const aiDietReport = ref(null); // New ref for AI Diet Report
-const isReportLoading = ref(false); // New ref for report loading state
+const aiDietReport = ref(null);
+const isReportLoading = ref(false);
 
-const activeSubTab = ref('summary'); // Default active sub-tab
-const subTabs = [
-  { id: 'summary', name: '기간별 요약' },
-  { id: 'records', name: '식단 기록' },
-  { id: 'ai_analysis', name: 'AI 분석' },
-];
+const activeSubTab = ref('summary');
 
 const filteredSubTabs = computed(() => {
-  let tabs = [];
-
   if (currentView.value === 'daily') {
-    tabs.push({ id: 'summary', name: '일일 요약' });
-    tabs.push({ id: 'records', name: '식단 기록' });
-    tabs.push({ id: 'ai_analysis', name: 'AI 요약' });
-  } else if (currentView.value === 'weekly') {
-    tabs.push({ id: 'summary', name: '주간 요약' }); // Weekly Summary
-    tabs.push({ id: 'daily_records_weekly', name: '일별 기록' }); // Daily Records within Weekly
-    tabs.push({ id: 'ai_analysis', name: 'AI 분석' });
-  } else if (currentView.value === 'monthly') {
-    tabs.push({ id: 'summary', name: '월간 요약' });
-    tabs.push({ id: 'records', name: '식단 기록' }); // Monthly records can still be a list
-    tabs.push({ id: 'ai_analysis', name: 'AI 분석' });
+    return [
+      { id: 'summary', name: '일일 요약' },
+      { id: 'records', name: '식단 기록' },
+      { id: 'ai_analysis', name: 'AI 요약' },
+    ];
   }
-
-  return tabs;
+  if (currentView.value === 'weekly') {
+    return [
+      { id: 'summary', name: '주간 요약' },
+      { id: 'daily_records_weekly', name: '일별 기록' },
+      { id: 'ai_analysis', name: 'AI 분석' },
+    ];
+  }
+  if (currentView.value === 'monthly') {
+    return [
+      { id: 'summary', name: '월간 요약' },
+      { id: 'calendar', name: '달력' },
+      { id: 'ai_analysis', name: 'AI 분석' },
+    ];
+  }
+  return [];
 });
 
 const currentSubTabTitle = computed(() => {
   const activeTab = filteredSubTabs.value.find(tab => tab.id === activeSubTab.value);
   return activeTab ? activeTab.name : '';
 });
-
-
-
 
 const isToday = (date) => toYYYYMMDD(date) === toYYYYMMDD(new Date());
 
@@ -470,10 +334,9 @@ const fetchDietData = async () => {
       params = { date: toYYYYMMDD(currentDate.value) };
     } else if (currentView.value === 'weekly') {
       const startOfWeek = new Date(currentDate.value);
-      const dayOfWeek = startOfWeek.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
-      const diff = (dayOfWeek === 0) ? 1 : (1 - dayOfWeek); // Adjust to start from Monday
+      const dayOfWeek = startOfWeek.getDay();
+      const diff = (dayOfWeek === 0) ? 1 : (1 - dayOfWeek);
       startOfWeek.setDate(startOfWeek.getDate() + diff);
-
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
       params = { startDate: toYYYYMMDD(startOfWeek), endDate: toYYYYMMDD(endOfWeek) };
@@ -484,34 +347,46 @@ const fetchDietData = async () => {
     }
 
     const responseData = await getDietLogs(params);
+    console.log(`[fetchDietData] API 응답 (원본, view: ${currentView.value}):`, JSON.parse(JSON.stringify(responseData)));
+
 
     if (currentView.value === 'daily') {
         dailySummaryData.value = responseData;
         dietRecords.value = responseData.dietList || [];
-    } else { // weekly or monthly
-        dailySummaryData.value = null; // Clear daily summary
-        console.log('Debug: Raw responseData from getDietLogs (non-daily):', responseData);
-        
-        // responseData에서 dailyLogs를 추출하고, 각 요일의 dietList를 합칩니다.
+        weeklySummaryData.value = null; 
+        monthlySummaryData.value = null;
+    } else {
+        dailySummaryData.value = null;
+        if (currentView.value === 'weekly') {
+            weeklySummaryData.value = responseData;
+            console.log('[fetchDietData] weeklySummaryData에 저장됨:', JSON.parse(JSON.stringify(weeklySummaryData.value)));
+            monthlySummaryData.value = null;
+        } else if (currentView.value === 'monthly') {
+            monthlySummaryData.value = responseData;
+            console.log('[fetchDietData] monthlySummaryData에 저장됨:', JSON.parse(JSON.stringify(monthlySummaryData.value)));
+            weeklySummaryData.value = null;
+        }
+
         let allDietLists = [];
         if (responseData && responseData.dailyLogs) {
             for (const dayKey in responseData.dailyLogs) {
-                if (responseData.dailyLogs[dayKey].dietList) {
+                if (responseData.dailyLogs[dayKey] && responseData.dailyLogs[dayKey].dietList) {
                     allDietLists = allDietLists.concat(responseData.dailyLogs[dayKey].dietList);
                 }
             }
         }
         dietRecords.value = allDietLists;
-        
     }
 
     const streakResponse = await fetchDietStreak();
     dietStreak.value = streakResponse;
 
+    mealRecommendations.value = [];
+    aiDietReport.value = null;
     if (currentView.value === 'daily' && isToday(currentDate.value)) {
       const now = new Date();
       const eatenMeals = (dailySummaryData.value?.dietList || []).filter(record => new Date(`${record.date}T${record.time || '00:00:00'}`) <= now);
-      // Fetch Meal Recommendations
+
       const recommendations = await getMealRecommendations({
         current_date: toYYYYMMDD(now),
         current_time: now.toTimeString().slice(0, 5),
@@ -521,34 +396,31 @@ const fetchDietData = async () => {
       });
       mealRecommendations.value = recommendations.recommendations;
 
-      // Fetch AI Diet Report
       isReportLoading.value = true;
       try {
         const report = await getAIDietReport(toYYYYMMDD(now));
         aiDietReport.value = report;
       } catch (reportError) {
         console.error('AI 식단 리포트 불러오기 실패:', reportError);
-        aiDietReport.value = null;
       } finally {
         isReportLoading.value = false;
       }
-
-    } else {
-      mealRecommendations.value = [];
-      aiDietReport.value = null; // Clear report if not daily and today
     }
   } catch (error) {
     console.error('식단 데이터를 불러오는 데 실패했습니다:', error);
   }
 };
 
-onMounted(() => {
-  fetchDietData();
-});
+onMounted(fetchDietData);
 
 watch([currentDate, currentView], () => {
   fetchDietData();
-  activeSubTab.value = 'summary'; // Reset active sub-tab when main view changes
+  const defaultTabs = {
+    daily: 'summary',
+    weekly: 'summary',
+    monthly: 'summary'
+  };
+  activeSubTab.value = defaultTabs[currentView.value] || 'summary';
 });
 
 const currentPeriod = computed(() => {
@@ -559,9 +431,9 @@ const currentPeriod = computed(() => {
     if (currentView.value === 'daily') return `${year}년 ${month}월 ${day}일`;
     if (currentView.value === 'weekly') {
         const startOfWeek = new Date(date);
-                    const dayOfWeek = startOfWeek.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
-            const diff = (dayOfWeek === 0) ? 1 : (1 - dayOfWeek); // Adjust to start from Monday
-            startOfWeek.setDate(startOfWeek.getDate() + diff);
+        const dayOfWeek = startOfWeek.getDay();
+        const diff = (dayOfWeek === 0) ? 1 : (1 - dayOfWeek);
+        startOfWeek.setDate(startOfWeek.getDate() + diff);
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 6);
         return `${toYYYYMMDD(startOfWeek)} ~ ${toYYYYMMDD(endOfWeek)}`;
@@ -570,115 +442,87 @@ const currentPeriod = computed(() => {
     return '';
 });
 
-const getRecordsByMealType = (mealType) => {
-  return dietRecords.value.filter(r => r.mealType === mealType && r.date === toYYYYMMDD(currentDate.value));
-};
-
-const getMealTotalCalories = (mealType) => {
-  return getRecordsByMealType(mealType).reduce((total, record) => total + (record.kcal || 0), 0);
-};
-
-const dailySummary = computed(() => {
-  if (currentView.value === 'daily' && dailySummaryData.value) {
-    return {
-      totalCalories: dailySummaryData.value.totalCalories || 0,
-      totalMealCount: dailySummaryData.value.totalMealCount || 0,
-      totalSnackCount: dailySummaryData.value.totalSnackCount || 0,
-    };
-  }
-  // 일별 데이터가 없거나 다른 보기일 경우의 기본값
-  return { totalCalories: 0, totalMealCount: 0, totalSnackCount: 0 };
+const dailyFilteredRecords = computed(() => {
+    if (currentView.value === 'daily') {
+        return dietRecords.value;
+    }
+    return [];
 });
 
 const hasAnyRecordsToday = computed(() => {
-  return dietRecords.value.length > 0;
+    if (currentView.value !== 'daily') return false;
+    return dietRecords.value.length > 0;
 });
 
-const periodSummary = computed(() => {
-  const totalMeals = dietRecords.value.length;
-  const totalCalories = dietRecords.value.reduce((sum, r) => sum + r.calories, 0);
-  
-  let periodDays = 1;
-  if (currentView.value === 'weekly') {
-    periodDays = 7;
-  } else if (currentView.value === 'monthly') {
-    periodDays = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1, 0).getDate();
-  }
-  
-  const uniqueDays = new Set(dietRecords.value.map(r => r.date)).size;
-  const avgCalories = uniqueDays > 0 ? Math.round(totalCalories / uniqueDays) : 0;
-  return { periodDays, avgCalories, totalMeals };
-});
-
-const weeklyData = computed(() => {
-    const date = new Date(currentDate.value);
-    const dayOfWeek = date.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
-    const startOfWeek = new Date(date);
-    // Adjust to start from Monday (0=Sun, 1=Mon, ..., 6=Sat)
-    // If current day is Sunday (0), go back 6 days to get Monday
-    // Otherwise, go back (dayOfWeek - 1) days to get Monday
-    const diff = (dayOfWeek === 0) ? 1 : (1 - dayOfWeek); // Adjust to start from Monday
-    startOfWeek.setDate(date.getDate() + diff);
-
-    let totalWeeklyCalories = 0;
-    let totalWeeklyCarbs = 0;
-    let totalWeeklyProtein = 0;
-    let totalWeeklyFat = 0;
-    let totalWeeklyMeals = 0;
-    const dailyLogs = {}; // Object to store daily data
-
-    const weekDayNames = ['월', '화', '수', '목', '금', '토', '일'];
-
-    for(let i=0; i<7; i++) {
-        const d = new Date(startOfWeek);
-        d.setDate(startOfWeek.getDate() + i);
-        const dateString = toYYYYMMDD(d);
-        const dayIndex = i + 1; // 1 for Monday, ..., 7 for Sunday
-
-        // Filter all diet records for this specific day
-        const recordsForThisDay = dietRecords.value.filter(r => r.date === dateString);
-
-        const dailyTotalCalories = recordsForThisDay.reduce((sum, r) => sum + (r.kcal || 0), 0);
-        const dailyTotalCarbs = recordsForThisDay.reduce((sum, r) => sum + (r.carbs || 0), 0);
-        const dailyTotalProtein = recordsForThisDay.reduce((sum, r) => sum + (r.protein || 0), 0);
-        const dailyTotalFat = recordsForThisDay.reduce((sum, r) => sum + (r.fat || 0), 0);
-        const dailyMealCount = recordsForThisDay.length;
-
-        totalWeeklyCalories += dailyTotalCalories;
-        totalWeeklyCarbs += dailyTotalCarbs;
-        totalWeeklyProtein += dailyTotalProtein;
-        totalWeeklyFat += dailyTotalFat;
-        totalWeeklyMeals += dailyMealCount;
-
-        dailyLogs[dayIndex] = {
-            dateString,
-            dateNum: d.getDate(),
-            dayName: weekDayNames[i], // Adjusted day names
-            isToday: toYYYYMMDD(d) === toYYYYMMDD(new Date()),
-            totalCalories: dailyTotalCalories,
-            totalCarbs: dailyTotalCarbs,
-            totalProtein: dailyTotalProtein,
-            totalFat: dailyTotalFat,
-            dietList: recordsForThisDay // Full daily records
-        };
+const monthlySummaryForUI = computed(() => {
+    if (!monthlySummaryData.value) {
+        return { totalCalories: 0, totalMealCount: 0, totalSnackCount: 0, avgCalories: 0, totalCarbs: 0, totalProtein: 0, totalFat: 0, avgCarbs: 0, avgProtein: 0, avgFat: 0 };
     }
-
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6); // Calculate end of week based on startOfWeek
-
+    const data = monthlySummaryData.value;
+    const daysInMonth = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1, 0).getDate();
     return {
-        startDate: toYYYYMMDD(startOfWeek),
-        endDate: toYYYYMMDD(endOfWeek),
-        totalMealCount: totalWeeklyMeals,
-        totalCalories: totalWeeklyCalories,
-        totalCarbs: totalWeeklyCarbs,
-        totalProtein: totalWeeklyProtein,
-        totalFat: totalWeeklyFat,
-        dailyLogs: dailyLogs
+        totalCalories: data.totalCalories || 0,
+        totalMealCount: data.totalMealCount || 0,
+        totalSnackCount: data.totalSnackCount || 0,
+        avgCalories: daysInMonth > 0 ? Math.round((data.totalCalories || 0) / daysInMonth) : 0,
+        totalCarbs: data.totalCarbs || 0,
+        totalProtein: data.totalProtein || 0,
+        totalFat: data.totalFat || 0,
+        avgCarbs: daysInMonth > 0 ? ((data.totalCarbs || 0) / daysInMonth).toFixed(0) : 0,
+        avgProtein: daysInMonth > 0 ? ((data.totalProtein || 0) / daysInMonth).toFixed(0) : 0,
+        avgFat: daysInMonth > 0 ? ((data.totalFat || 0) / daysInMonth).toFixed(0) : 0,
     };
 });
 
+const weeklyData = computed(() => {
+    console.log('[weeklyData] 실행됨. 입력 데이터 (weeklySummaryData):', JSON.parse(JSON.stringify(weeklySummaryData.value)));
+    if (currentView.value !== 'weekly' || !weeklySummaryData.value) {
+        return { totalCalories: 0, totalCarbs: 0, totalProtein: 0, totalFat: 0, totalMealCount: 0, totalSnackCount: 0, dailyLogs: {} };
+    }
+
+    const apiData = weeklySummaryData.value;
+    const weekDayNames = ['월', '화', '수', '목', '금', '토', '일'];
+    const startOfWeek = apiData.startDate ? new Date(apiData.startDate + 'T00:00:00') : new Date();
+
+    const processedDailyLogs = {};
+    if (apiData.dailyLogs) {
+        for (let i = 0; i < 7; i++) {
+            const dayIndex = i + 1;
+            const log = apiData.dailyLogs[dayIndex] || { dietList: [] };
+
+            const currentDayInLoop = new Date(startOfWeek);
+            currentDayInLoop.setDate(startOfWeek.getDate() + i);
+
+            processedDailyLogs[dayIndex] = {
+                ...log,
+                dateString: log.date || toYYYYMMDD(currentDayInLoop),
+                dateNum: currentDayInLoop.getDate(),
+                dayName: weekDayNames[i],
+                isToday: toYYYYMMDD(currentDayInLoop) === toYYYYMMDD(new Date()),
+            };
+        }
+    }
+
+    const result = {
+        startDate: apiData.startDate,
+        endDate: apiData.endDate,
+        totalMealCount: apiData.totalMealCount || 0,
+        totalSnackCount: apiData.totalSnackCount || 0,
+        totalCalories: apiData.totalCalories || 0,
+        totalCarbs: apiData.totalCarbs || 0,
+        totalProtein: apiData.totalProtein || 0,
+        totalFat: apiData.totalFat || 0,
+        dailyLogs: processedDailyLogs
+    };
+    console.log('[weeklyData] 반환될 최종 데이터:', result);
+    return result;
+});
+
 const monthlyData = computed(() => {
+    console.log('[monthlyData] 실행됨. 입력 데이터 (monthlySummaryData):', JSON.parse(JSON.stringify(monthlySummaryData.value)));
+    if (currentView.value !== 'monthly' || !monthlySummaryData.value?.dailyLogs) return [];
+    
+    const apiLogs = monthlySummaryData.value.dailyLogs;
     const date = new Date(currentDate.value);
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -695,17 +539,16 @@ const monthlyData = computed(() => {
     }
 
     for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
+        const dayData = apiLogs[i] || {};
         const d = new Date(year, month, i);
         const dateString = toYYYYMMDD(d);
-        const dailyRecords = dietRecords.value.filter(r => r.date === dateString);
-        const totalCalories = dailyRecords.reduce((sum, r) => sum + r.calories, 0);
 
         calendarDays.push({
             dateString,
             dateNum: i,
             isCurrentMonth: true,
             isToday: dateString === toYYYYMMDD(new Date()),
-            totalCalories: totalCalories
+            totalCalories: dayData.totalCalories || 0
         });
     }
 
@@ -717,17 +560,14 @@ const monthlyData = computed(() => {
             calendarDays.push({ dateString: toYYYYMMDD(d), dateNum: d.getDate(), isCurrentMonth: false, totalCalories: 0 });
         }
     }
+    console.log('[monthlyData] 반환될 최종 달력 배열:', calendarDays);
     return calendarDays;
 });
 
-const openAddModal = () => {
-  const today = new Date();
-  const formattedDate = toYYYYMMDD(today);
-  console.log('Debug: Current Date object:', today);
-  console.log('Debug: Formatted Date (YYYY-MM-DD):', formattedDate);
 
+const openAddModal = () => {
   selectedRecord.value = {
-      date: formattedDate // Always use today's date for new records
+      date: toYYYYMMDD(currentDate.value)
   };
   isModalOpen.value = true;
 };
@@ -771,21 +611,25 @@ const changePeriod = (amount) => {
 };
 
 const shareDietPost = () => {
-  const dateString = currentPeriod.value; // e.g., "2025년 12월 16일"
+  if (currentView.value !== 'daily') return;
+
+  const dateString = currentPeriod.value;
   const title = `[식단 공유] ${dateString} 식단 기록`;
-
+  
   let content = `## ${dateString} 식단 요약\n\n`;
-  content += `**총 섭취 칼로리:** ${dailySummary.value.totalCalories} kcal\n\n`;
+  if (dailySummaryData.value) {
+    content += `**총 섭취 칼로리:** ${dailySummaryData.value.totalCalories} kcal\n\n`;
+  }
 
-  const dailyRecords = dietRecords.value.filter(r => r.date === toYYYYMMDD(currentDate.value));
+  const dailyRecords = dietRecords.value;
   if (dailyRecords.length > 0) {
     content += `### 식단 상세\n`;
     mealTypes.forEach(mealType => {
-      const recordsForMeal = dailyRecords.filter(r => r.mealType === mealType.name);
+      const recordsForMeal = dailyRecords.filter(r => r.mealType === mealType.apiValue);
       if (recordsForMeal.length > 0) {
         content += `* **${mealType.name}**\n`;
         recordsForMeal.forEach(record => {
-          content += `  - ${record.food} (${record.calories} kcal)\n`;
+          content += `  - ${record.foodName} (${record.kcal.toFixed(0)} kcal)\n`;
         });
       }
     });
@@ -802,7 +646,7 @@ const shareDietPost = () => {
   router.push({
     name: 'BoardWrite',
     query: {
-      category: 'REVIEW', // Use 'REVIEW' as the ID for '식단 공유'
+      category: 'REVIEW',
       title: title,
       content: content
     }

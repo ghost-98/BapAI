@@ -1,12 +1,12 @@
 import './style.css'
 
 import { createApp } from 'vue'
-import { createPinia } from 'pinia' // Pinia 임포트
+import { createPinia } from 'pinia'
 import App from './App.vue'
-import router from './router' // 라우터 임포트
+import router from './router'
 
 const app = createApp(App)
-const pinia = createPinia() // Pinia 인스턴스 생성
+const pinia = createPinia()
 
 app.use(pinia) // Pinia 사용
 app.use(router) // 라우터 사용

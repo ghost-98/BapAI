@@ -31,6 +31,7 @@
                     class="text-gray-200 stroke-current"
                     stroke-width="8"
                     cx="50"
+                    
                     cy="50"
                     r="40"
                     fill="transparent"

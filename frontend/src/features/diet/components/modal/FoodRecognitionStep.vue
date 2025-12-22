@@ -23,7 +23,7 @@
 <script setup>
 import { ref } from 'vue';
 import { UploadCloud } from 'lucide-vue-next';
-import { useNotificationStore } from '../../../stores/notification'; // Notification store 임포트
+import { useNotificationStore } from '../../../../stores/notification'; // Notification store 임포트
 
 const emit = defineEmits(['data-provided']);
 

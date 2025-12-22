@@ -36,7 +36,7 @@
 
 <script setup>
 import { ref, watch } from 'vue';
-import { useNotificationStore } from '../../../stores/notification';
+import { useNotificationStore } from '../../../../stores/notification';
 
 const props = defineProps({
   recognizedFoodData: {

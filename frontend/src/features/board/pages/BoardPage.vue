@@ -141,29 +141,23 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex justify-center items-center mt-8">
-        <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1" class="p-2 rounded-full hover:bg-gray-200/70 disabled:opacity-50 disabled:cursor-not-allowed">
-          <ChevronLeft class="w-5 h-5" />
-        </button>
-        <div class="flex items-center gap-2 mx-4">
-          <button v-for="page in pageNumbers" :key="page" @click="changePage(page)"
-                  :class="['w-9 h-9 rounded-full text-sm font-medium transition-colors', currentPage === page ? 'bg-orange-500 text-white shadow-md' : 'hover:bg-gray-200/70']">
-            {{ page }}
-          </button>
-        </div>
-        <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages" class="p-2 rounded-full hover:bg-gray-200/70 disabled:opacity-50 disabled:cursor-not-allowed">
-          <ChevronRight class="w-5 h-5" />
-        </button>
-      </div>
+      <Pagination
+        v-if="totalPages > 1"
+        :currentPage="currentPage"
+        :totalPages="totalPages"
+        @page-change="changePage"
+        class="mt-8"
+      />
     </div>
   </main>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Plus, Search, User, ThumbsUp, ThumbsDown, MessageSquare, ChevronLeft, ChevronRight, LayoutGrid, List, ImageIcon, Eye } from 'lucide-vue-next';
+import { Plus, Search, User, ThumbsUp, ThumbsDown, MessageSquare, LayoutGrid, List, ImageIcon, Eye } from 'lucide-vue-next';
 import apiClient from '../../../api';
+import Pagination from '../../../components/common/Pagination.vue';
 
 const router = useRouter();
 
@@ -219,14 +213,6 @@ const changePage = (page) => {
     fetchPosts();
   }
 };
-
-const pageNumbers = computed(() => {
-  const pages = [];
-  for (let i = 1; i <= totalPages.value; i++) {
-    pages.push(i);
-  }
-  return pages;
-});
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);

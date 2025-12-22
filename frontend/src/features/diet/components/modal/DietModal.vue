@@ -129,8 +129,8 @@ import InputMethodSelectionStep from './InputMethodSelectionStep.vue';
 import FoodNameInputStep from './FoodNameInputStep.vue';
 import FoodNameAndImageInputStep from './FoodNameAndImageInputStep.vue';
 
-import { apiClientForMultipart, analyzeFood } from '../../../api';
-import { useNotificationStore } from '../../../stores/notification';
+import { apiClientForMultipart, analyzeFood } from '../../../../api';
+import { useNotificationStore } from '../../../../stores/notification';
 
 const props = defineProps({
   show: Boolean,

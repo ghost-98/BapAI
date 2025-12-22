@@ -26,7 +26,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useNotificationStore } from '../../../stores/notification';
+import { useNotificationStore } from '../../../../stores/notification';
 
 const emit = defineEmits(['data-provided']);
 

@@ -155,7 +155,7 @@
 
           <!-- Pagination Component -->
           <template v-if="totalPages > 1">
-            <CommentPagination
+            <Pagination
               :key="currentPage"
               :currentPage="currentPage + 1"
               :totalPages="totalPages"
@@ -181,7 +181,7 @@ import apiClient from '../../../api'
 import { UserCircle, Eye, ThumbsUp, ThumbsDown, MoreVertical } from 'lucide-vue-next'
 import { format, parse } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import CommentPagination from '../../../components/common/CommentPagination.vue'
+import Pagination from '../../../components/common/Pagination.vue'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 const IMAGE_BASE_URL = API_BASE_URL.replace('/api', '');

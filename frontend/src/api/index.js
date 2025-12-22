@@ -141,29 +141,10 @@ export const analyzeFood = async (formData) => {
 
 export const getDietLogs = async (params) => {
   try {
-    console.log('API: getDietLogs called with params:', params); // Added log
+    console.log('API: getDietLogs called with params:', params);
     const response = await apiClient.get(`/diet-logs/me`, { params });
-    console.log('API: getDietLogs raw response data:', response.data); // Added log
-    
-    // 'date' 파라미터가 있고 'month'나 'startDate'가 없으면 일일 요약 요청으로 간주
-    if (params.date && !params.month && !params.startDate) {
-        // 일일 요약 객체는 그대로 반환
-        return response.data;
-    }
-
-    // 그 외(주간/월간)는 기록의 배열로 처리
-    const records = response.data.results || response.data; 
-    
-    if (Array.isArray(records)) {
-      return records.map(record => {
-          const { kcal, ...rest } = record;
-          const calories = record.calories !== undefined ? record.calories : kcal;
-          return { ...rest, calories };
-      });
-    }
-
-    console.warn('getDietLogs가 배열 형식의 응답을 받지 못했습니다 (비-일일 요청):', response.data);
-    return []; 
+    console.log('API: getDietLogs raw response data:', response.data);
+    return response.data; // Just return the data as-is
   } catch (error) {
     console.error('식단 기록 불러오기 실패:', error);
     throw error;
