@@ -22,28 +22,31 @@
           <form v-else @submit.prevent="handleFindUsername" class="space-y-4">
             <div>
               <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">이메일</label>
-              <div class="relative">
-                <Mail class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  v-model="email"
-                  id="email"
-                  type="email"
-                  required
-                  placeholder="your@email.com"
-                  :disabled="emailVerificationSent"
-                  class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 disabled:bg-gray-100"
-                />
+              <div class="flex gap-2">
+                <div class="relative grow">
+                  <Mail class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    v-model="email"
+                    id="email"
+                    type="email"
+                    required
+                    placeholder="your@email.com"
+                    :disabled="countdown > 0"
+                    class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 disabled:bg-gray-100"
+                  />
+                </div>
+                <button
+                  @click="handleEmailVerification"
+                  type="button"
+                  :disabled="!email || countdown > 0"
+                  class="shrink-0 px-4 py-3 rounded-xl bg-gray-600 text-white font-semibold hover:bg-gray-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  <span v-if="countdown > 0">({{ Math.floor(countdown / 60).toString().padStart(2, '0') }}:{{ (countdown % 60).toString().padStart(2, '0') }})</span>
+                  <span v-else-if="emailVerificationSent">재전송</span>
+                  <span v-else>인증</span>
+                </button>
               </div>
             </div>
-
-            <button
-              @click="handleEmailVerification"
-              type="button"
-              :disabled="!email || emailVerificationSent"
-              class="w-full py-3 rounded-xl bg-gray-600 text-white font-semibold hover:bg-gray-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {{ emailVerificationSent ? '인증 메일이 발송되었습니다' : '인증 메일 발송' }}
-            </button>
 
             <div v-if="emailVerificationSent" class="space-y-2 !mt-6">
               <label for="verificationCode" class="block text-sm font-semibold text-gray-700">인증코드</label>
@@ -79,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { Mail, KeyRound } from 'lucide-vue-next';
 import apiClient from '../../../api';
@@ -91,6 +94,28 @@ const email = ref('');
 const verificationCode = ref('');
 const emailVerificationSent = ref(false);
 const foundUsername = ref('');
+const countdown = ref(0);
+let timerIntervalId = null;
+
+const startCountdown = () => {
+  countdown.value = 300; // 5 minutes
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  timerIntervalId = setInterval(() => {
+    if (countdown.value > 0) {
+      countdown.value--;
+    } else {
+      clearInterval(timerIntervalId);
+      timerIntervalId = null;
+      notificationStore.showNotification('인증 시간이 만료되었습니다. 다시 시도해주세요.', 'warning');
+    }
+  }, 1000);
+};
+
+onBeforeUnmount(() => {
+  if (timerIntervalId) {
+    clearInterval(timerIntervalId);
+  }
+});
 
 const handleEmailVerification = async () => {
   if (!email.value) {
@@ -101,6 +126,7 @@ const handleEmailVerification = async () => {
     await apiClient.post('/auth/email/send', { email: email.value });
     notificationStore.showNotification('인증 메일이 발송되었습니다. 이메일을 확인해주세요.', 'success');
     emailVerificationSent.value = true;
+    startCountdown();
   } catch (error) {
     console.error('이메일 인증 요청 실패:', error.response ? error.response.data : error.message);
     notificationStore.showNotification(error.response?.data?.message || '이메일 인증 요청에 실패했습니다.', 'error');
@@ -119,6 +145,9 @@ const handleFindUsername = async () => {
     });
     foundUsername.value = response.data.username;
     notificationStore.showNotification('아이디를 성공적으로 찾았습니다.', 'success');
+    clearInterval(timerIntervalId);
+    timerIntervalId = null;
+    countdown.value = 0;
   } catch (error) {
     console.error('아이디 찾기 실패:', error.response ? error.response.data : error.message);
     notificationStore.showNotification(error.response?.data?.message || '아이디 찾기에 실패했습니다.', 'error');

@@ -68,34 +68,39 @@
 
             <div>
               <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">이메일</label>
-              <div class="relative">
-                <Mail class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  v-model="email"
-                  @blur="checkEmail"
-                  id="email"
-                  type="email"
-                  required
-                  placeholder="your@email.com"
-                  :disabled="isEmailVerified || emailStatus === 'checking'"
-                  class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50"
-                />
+              <div class="flex gap-2">
+                <div class="relative grow">
+                  <Mail class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    v-model="email"
+                    @blur="checkEmail"
+                    id="email"
+                    type="email"
+                    required
+                    placeholder="your@email.com"
+                    :disabled="isEmailVerified || emailStatus === 'checking' || countdown > 0"
+                    class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50"
+                  />
+                </div>
+                <button
+                  @click="handleEmailVerification"
+                  type="button"
+                  :disabled="emailStatus !== 'available' || isEmailVerified || countdown > 0"
+                  class="shrink-0 px-4 py-3 rounded-xl bg-gray-600 text-white font-semibold hover:bg-gray-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  <span v-if="countdown > 0">({{ Math.floor(countdown / 60).toString().padStart(2, '0') }}:{{ (countdown % 60).toString().padStart(2, '0') }})</span>
+                  <span v-else-if="isEmailVerified">인증 완료</span>
+                  <span v-else-if="emailVerificationSent">재전송</span>
+                  <span v-else>인증</span>
+                </button>
               </div>
               <p v-if="emailMessage" :class="['mt-1 text-sm', emailStatus === 'available' ? 'text-green-600' : 'text-red-600']">
                 {{ emailMessage }}
               </p>
-              <button
-                @click="handleEmailVerification"
-                type="button"
-                :disabled="emailStatus !== 'available' || isEmailVerified"
-                class="w-full mt-2 py-3 rounded-xl bg-gray-600 text-white font-semibold hover:bg-gray-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {{ isEmailVerified ? '인증 완료' : (emailVerificationSent ? '재전송' : '이메일 인증') }}
-              </button>
             </div>
 
             <div v-if="emailVerificationSent && !isEmailVerified" class="space-y-2 !mt-4">
-              <label for="verificationCode" class="block text-sm font-semibold text-gray-700">인증코드</label>
+              <label for="verificationCode" class="block text-sm font-semibold text-gray-700 mb-2">인증코드</label>
               <div class="relative">
                 <KeyRound class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -158,7 +163,7 @@
             <button
               type="submit"
               :disabled="passwordMismatch || !isEmailVerified || usernameStatus !== 'available' || nicknameStatus !== 'available' || emailStatus !== 'available'"
-              class="w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 text-white font-bold text-lg hover:from-orange-600 hover:to-rose-600 transition-all transform hover:scale-[1.02] shadow-lg"
+              class="w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 text-white font-bold text-lg hover:from-orange-600 hover:to-rose-600 transition-all transform hover:scale-[1.02] shadow-lg disabled:opacity-50"
             >
               회원가입
             </button>
@@ -177,7 +182,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { Mail, Lock, User, UserCircle, KeyRound } from 'lucide-vue-next'
 import apiClient from '../../../api'
@@ -208,9 +213,33 @@ const emailVerificationSent = ref(false)
 const verificationCode = ref('')
 const isEmailVerified = ref(false)
 
+const countdown = ref(0);
+let timerIntervalId = null;
+
 const passwordMismatch = computed(() => {
   return confirmPassword.value.length > 0 && password.value !== confirmPassword.value
 })
+
+const startCountdown = () => {
+  countdown.value = 300; // 5 minutes
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  timerIntervalId = setInterval(() => {
+    if (countdown.value > 0) {
+      countdown.value--;
+    } else {
+      clearInterval(timerIntervalId);
+      timerIntervalId = null;
+      notificationStore.showNotification('인증 시간이 만료되었습니다. 다시 시도해주세요.', 'warning');
+    }
+  }, 1000);
+};
+
+onBeforeUnmount(() => {
+  if (timerIntervalId) {
+    clearInterval(timerIntervalId);
+  }
+});
+
 
 const checkUsername = async () => {
   if (!username.value) {
@@ -301,6 +330,7 @@ const handleEmailVerification = async () => {
     await apiClient.post('/auth/email/send', { email: email.value });
     notificationStore.showNotification('인증 메일이 발송되었습니다. 이메일을 확인해주세요.', 'success');
     emailVerificationSent.value = true;
+    startCountdown(); // Start countdown on success
   } catch (error) {
     console.error('이메일 인증 요청 실패:', error.response ? error.response.data : error.message);
     notificationStore.showNotification(error.response?.data?.message || '이메일 인증 요청에 실패했습니다.', 'error');
@@ -319,6 +349,9 @@ const handleCodeVerification = async () => {
     });
     notificationStore.showNotification('이메일 인증이 완료되었습니다.', 'success');
     isEmailVerified.value = true;
+    clearInterval(timerIntervalId); // Stop countdown on successful verification
+    timerIntervalId = null;
+    countdown.value = 0;
   } catch (error) {
     console.error('인증코드 확인 실패:', error.response ? error.response.data : error.message);
     notificationStore.showNotification(error.response?.data?.message || '인증코드가 올바르지 않습니다.', 'error');
@@ -351,12 +384,29 @@ const handleSignup = async () => {
       email: email.value,
       password: password.value
     });
-    notificationStore.showNotification('회원가입에 성공했습니다! 추가 정보 입력 페이지로 이동합니다.', 'success');
-    authStore.setFirstStepCompleted(true);
-    router.push('/additional-info');
+
+    // 회원가입 성공 후, 즉시 로그인 처리
+    const loginResponse = await apiClient.post('/auth/login', {
+      username: username.value,
+      password: password.value,
+    });
+
+    const { accessToken, refreshToken, name: loggedInName, userId } = loginResponse.data;
+
+    if (accessToken && refreshToken && loggedInName && userId) {
+      authStore.setTokens(accessToken, refreshToken, false); // '로그인 유지' 안함
+      authStore.setUserInfo(userId, loggedInName, false);
+      
+      notificationStore.showNotification('회원가입 성공 및 자동 로그인되었습니다. 추가 정보를 입력해주세요.', 'success');
+      authStore.setFirstStepCompleted(true);
+      router.push('/additional-info');
+    } else {
+      // 로그인 응답에 필수 데이터가 없을 경우
+      throw new Error('자동 로그인 실패: 필수 응답 데이터가 부족합니다.');
+    }
   } catch (error) {
-    console.error('회원가입 실패:', error.response ? error.response.data : error.message);
-    notificationStore.showNotification(error.response?.data?.message || '회원가입에 실패했습니다. 입력 내용을 확인해주세요.', 'error');
+    console.error('회원가입 또는 자동 로그인 실패:', error.response ? error.response.data : error.message);
+    notificationStore.showNotification(error.response?.data?.message || '회원가입 또는 자동 로그인에 실패했습니다. 입력 내용을 확인해주세요.', 'error');
   }
 }
 </script>
