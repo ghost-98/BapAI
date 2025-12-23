@@ -6,7 +6,7 @@
 
     <div class="flex flex-col min-h-screen">
       <!-- Navigation -->
-      <nav class="border-b border-white/50 bg-white/40 backdrop-blur-sm sticky top-0 z-30">
+      <nav class="border-b border-gray-200/75 bg-white/40 backdrop-blur-sm sticky top-0 z-30">
         <div class="mx-auto max-w-7xl px-6">
           <div class="flex items-center justify-between h-16">
             <!-- Logo -->
@@ -87,8 +87,15 @@
         </div>
       </nav>
 
+      <!-- Page Header -->
+      <header class="mx-auto max-w-screen-2xl px-4 sm:px-6 pt-12">
+        <slot name="header"></slot>
+      </header>
+      
       <!-- Page Content -->
-      <router-view class="flex-1" />
+      <main class="mx-auto max-w-screen-2xl px-4 sm:px-6 py-8 flex-1">
+        <router-view />
+      </main>
     </div>
 
     <!-- Global Notification Display -->
@@ -102,6 +109,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { UserCircle, ChevronDown, LogOut, Settings } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth' // Import auth store
 import NotificationDisplay from '@/components/common/NotificationDisplay.vue' // Import NotificationDisplay
+import { RouterView } from 'vue-router'
 
 const router = useRouter()
 const authStore = useAuthStore() // Instantiate auth store

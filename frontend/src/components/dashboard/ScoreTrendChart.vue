@@ -1,7 +1,7 @@
 <template>
   <div class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-[1.01]">
     <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
-      <h3 class="text-xl font-bold text-gray-800 mb-4">나의 7일 점수 변화</h3>
+      <h3 class="text-xl font-bold text-gray-800 mb-4">최근 7일 식단 점수 변화</h3>
       <div class="h-52 relative" ref="containerEl">
         <svg v-if="scores && scores.length" class="w-full h-full" :viewBox="`0 0 ${chartWidth} ${chartHeight}`">
           <!-- Grid Lines -->
@@ -30,7 +30,7 @@
               class="font-medium"
               :class="index === scores.length - 1 ? 'fill-rose-600 font-bold' : 'fill-gray-500'"
             >
-              {{ scores[index].dateOfMonth }}일({{ scores[index].day }})
+              {{ scores[index].dateOfMonth }}({{ scores[index].day }})
             </text>
           </g>
         </svg>
