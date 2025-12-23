@@ -1,165 +1,175 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
-    <div class="w-full max-w-md">
-      <div class="bg-white rounded-2xl shadow-xl p-8">
-        <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">회원가입</h1>
-          <p class="text-gray-600">식단관리를 시작하세요</p>
-        </div>
-
-        <form @submit.prevent="handleSignup" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">이름</label>
-            <div class="relative">
-              <User class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                v-model="name"
-                type="text"
-                required
-                placeholder="홍길동"
-                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
-              />
-            </div>
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <!-- Organic blob shapes -->
+    <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-orange-300/30 to-rose-300/30 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-amber-300/30 to-orange-300/30 rounded-full blur-3xl"></div>
+    
+    <div class="w-full max-w-lg relative z-10">
+      <div class="bg-white/80 backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl border border-white/50">
+        <div class="space-y-6">
+          <div class="text-center space-y-2">
+            <h2 class="text-3xl font-bold text-gray-900">회원가입</h2>
+            <p class="text-gray-600">식단관리를 시작하고 건강한 삶을 만들어가세요!</p>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">아이디</label>
-            <div class="relative">
-              <User class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                v-model="username"
-                @blur="checkUsername"
-                type="text"
-                required
-                placeholder="사용할 아이디"
-                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
-              />
+          <form @submit.prevent="handleSignup" class="space-y-4">
+            <div>
+              <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">이름</label>
+              <div class="relative">
+                <User class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  v-model="name"
+                  id="name"
+                  type="text"
+                  required
+                  placeholder="홍길동"
+                  class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50"
+                />
+              </div>
             </div>
-            <p v-if="usernameMessage" :class="['mt-1 text-sm', usernameStatus === 'available' ? 'text-green-600' : 'text-red-600']">
-              {{ usernameMessage }}
-            </p>
-          </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">닉네임</label>
-            <div class="relative">
-              <UserCircle class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                v-model="nickname"
-                @blur="checkNickname"
-                type="text"
-                required
-                placeholder="사용할 닉네임"
-                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
-              />
+            <div>
+              <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">아이디</label>
+              <div class="relative">
+                <User class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  v-model="username"
+                  @blur="checkUsername"
+                  id="username"
+                  type="text"
+                  required
+                  placeholder="사용할 아이디"
+                  class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50"
+                />
+              </div>
+              <p v-if="usernameMessage" :class="['mt-1 text-sm', usernameStatus === 'available' ? 'text-green-600' : 'text-red-600']">
+                {{ usernameMessage }}
+              </p>
             </div>
-            <p v-if="nicknameMessage" :class="['mt-1 text-sm', nicknameStatus === 'available' ? 'text-green-600' : 'text-red-600']">
-              {{ nicknameMessage }}
-            </p>
-          </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">이메일</label>
-            <div class="flex gap-2">
-              <div class="relative grow">
-                <Mail class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div>
+              <label for="nickname" class="block text-sm font-semibold text-gray-700 mb-2">닉네임</label>
+              <div class="relative">
+                <UserCircle class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  v-model="nickname"
+                  @blur="checkNickname"
+                  id="nickname"
+                  type="text"
+                  required
+                  placeholder="사용할 닉네임"
+                  class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50"
+                />
+              </div>
+              <p v-if="nicknameMessage" :class="['mt-1 text-sm', nicknameStatus === 'available' ? 'text-green-600' : 'text-red-600']">
+                {{ nicknameMessage }}
+              </p>
+            </div>
+
+            <div>
+              <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">이메일</label>
+              <div class="relative">
+                <Mail class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   v-model="email"
                   @blur="checkEmail"
+                  id="email"
                   type="email"
                   required
                   placeholder="your@email.com"
                   :disabled="isEmailVerified || emailStatus === 'checking'"
-                  class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                  class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50"
                 />
               </div>
+              <p v-if="emailMessage" :class="['mt-1 text-sm', emailStatus === 'available' ? 'text-green-600' : 'text-red-600']">
+                {{ emailMessage }}
+              </p>
               <button
                 @click="handleEmailVerification"
                 type="button"
                 :disabled="emailStatus !== 'available' || isEmailVerified"
-                class="w-32 bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+                class="w-full mt-2 py-3 rounded-xl bg-gray-600 text-white font-semibold hover:bg-gray-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {{ isEmailVerified ? '인증 완료' : (emailVerificationSent ? '재전송' : '이메일 인증') }}
               </button>
             </div>
-            <p v-if="emailMessage" :class="['mt-1 text-sm', emailStatus === 'available' ? 'text-green-600' : 'text-red-600']">
-              {{ emailMessage }}
-            </p>
-          </div>
 
-          <div v-if="emailVerificationSent && !isEmailVerified" class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">인증코드</label>
-            <div class="flex gap-2">
-              <div class="relative grow">
+            <div v-if="emailVerificationSent && !isEmailVerified" class="space-y-2 !mt-4">
+              <label for="verificationCode" class="block text-sm font-semibold text-gray-700">인증코드</label>
+              <div class="relative">
+                <KeyRound class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   v-model="verificationCode"
+                  id="verificationCode"
                   type="text"
                   required
                   placeholder="이메일로 받은 인증코드"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                  class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50"
                 />
               </div>
               <button
                 @click="handleCodeVerification"
                 type="button"
-                class="w-32 bg-emerald-500 text-white py-3 rounded-lg font-semibold hover:bg-emerald-600 transition"
+                class="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 text-white font-bold hover:from-orange-600 hover:to-rose-600 transition-all transform hover:scale-[1.02] shadow-lg"
               >
                 인증코드 확인
               </button>
             </div>
-          </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
-            <div class="relative">
-              <Lock class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                v-model="password"
-                type="password"
-                required
-                placeholder="••••••••"
-                :class="[
-                  'w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 outline-none transition',
-                  passwordMismatch ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-emerald-500 focus:border-transparent'
-                ]"
-              />
+            <div>
+              <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">비밀번호</label>
+              <div class="relative">
+                <Lock class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  v-model="password"
+                  id="password"
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  :class="[
+                    'w-full pl-12 pr-4 py-3 rounded-xl border-2 focus:border-orange-400 focus:outline-none transition-colors bg-white/50',
+                    passwordMismatch ? 'border-red-500' : 'border-gray-200'
+                  ]"
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">비밀번호 확인</label>
-            <div class="relative">
-              <Lock class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                v-model="confirmPassword"
-                type="password"
-                required
-                placeholder="••••••••"
-                :class="[
-                  'w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 outline-none transition',
-                  passwordMismatch ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-emerald-500 focus:border-transparent'
-                ]"
-              />
+            <div>
+              <label for="confirmPassword" class="block text-sm font-semibold text-gray-700 mb-2">비밀번호 확인</label>
+              <div class="relative">
+                <Lock class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  v-model="confirmPassword"
+                  id="confirmPassword"
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  :class="[
+                    'w-full pl-12 pr-4 py-3 rounded-xl border-2 focus:border-orange-400 focus:outline-none transition-colors bg-white/50',
+                    passwordMismatch ? 'border-red-500' : 'border-gray-200'
+                  ]"
+                />
+              </div>
+              <p v-if="passwordMismatch" class="mt-1 text-sm text-red-600">
+                비밀번호가 일치하지 않습니다
+              </p>
             </div>
-            <p v-if="passwordMismatch" class="mt-1 text-sm text-red-600">
-              비밀번호가 일치하지 않습니다
-            </p>
+
+            <button
+              type="submit"
+              :disabled="passwordMismatch || !isEmailVerified || usernameStatus !== 'available' || nicknameStatus !== 'available' || emailStatus !== 'available'"
+              class="w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 text-white font-bold text-lg hover:from-orange-600 hover:to-rose-600 transition-all transform hover:scale-[1.02] shadow-lg"
+            >
+              회원가입
+            </button>
+          </form>
+
+          <div class="mt-6 text-center text-sm text-gray-600">
+            이미 계정이 있으신가요?
+            <router-link to="/login" class="text-orange-600 hover:text-orange-700 font-semibold ml-1">
+              로그인
+            </router-link>
           </div>
-
-          <button
-            type="submit"
-            :disabled="passwordMismatch || !isEmailVerified || usernameStatus !== 'available' || nicknameStatus !== 'available' || emailStatus !== 'available'"
-            class="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition shadow-lg hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            회원가입
-          </button>
-        </form>
-
-        <div class="mt-6 text-center text-sm text-gray-600">
-          이미 계정이 있으신가요?
-          <router-link to="/login" class="text-emerald-600 hover:text-emerald-700 font-semibold ml-1">
-            로그인
-          </router-link>
         </div>
       </div>
     </div>
@@ -169,12 +179,14 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Mail, Lock, User, UserCircle } from 'lucide-vue-next'
+import { Mail, Lock, User, UserCircle, KeyRound } from 'lucide-vue-next'
 import apiClient from '../../../api'
-import { useAuthStore } from '../../../stores/auth' // Pinia auth store 임포트
+import { useAuthStore } from '../../../stores/auth'
+import { useNotificationStore } from '../../../stores/notification'
 
 const router = useRouter()
-const authStore = useAuthStore() // authStore 사용
+const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 
 const name = ref('')
 const username = ref('')
@@ -183,13 +195,13 @@ const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 
-const usernameStatus = ref('') // 'checking', 'available', 'taken'
+const usernameStatus = ref('')
 const usernameMessage = ref('')
 
-const nicknameStatus = ref('') // 'checking', 'available', 'taken'
+const nicknameStatus = ref('')
 const nicknameMessage = ref('')
 
-const emailStatus = ref('') // 'checking', 'available', 'taken'
+const emailStatus = ref('')
 const emailMessage = ref('')
 
 const emailVerificationSent = ref(false)
@@ -220,6 +232,7 @@ const checkUsername = async () => {
       usernameStatus.value = 'error'
       usernameMessage.value = '확인 중 에러가 발생했습니다.'
     }
+    notificationStore.showNotification(error.response?.data?.message || '아이디 중복 확인 중 에러가 발생했습니다.', 'error');
   }
 }
 
@@ -230,10 +243,9 @@ const checkNickname = async () => {
     return
   }
   nicknameStatus.value = 'checking'
-
   nicknameMessage.value = '닉네임 중복을 확인 중입니다...'
   try {
-        await apiClient.get('/auth/check-nickname', { params: { nickname: nickname.value } })
+    await apiClient.get('/auth/check-nickname', { params: { nickname: nickname.value } })
     nicknameStatus.value = 'available'
     nicknameMessage.value = '사용 가능한 닉네임입니다.'
   } catch (error) {
@@ -244,6 +256,7 @@ const checkNickname = async () => {
       nicknameStatus.value = 'error'
       nicknameMessage.value = '확인 중 에러가 발생했습니다.'
     }
+    notificationStore.showNotification(error.response?.data?.message || '닉네임 중복 확인 중 에러가 발생했습니다.', 'error');
   }
 }
 
@@ -260,73 +273,74 @@ const checkEmail = async () => {
     emailStatus.value = 'available'
     emailMessage.value = '사용 가능한 이메일입니다.'
   } catch (error) {
-    if (error.response && error.response.status === 409) { // Conflict
+    if (error.response && error.response.status === 409) {
       emailStatus.value = 'taken'
       emailMessage.value = '이미 사용 중인 이메일입니다.'
     } else {
       emailStatus.value = 'error'
       emailMessage.value = '확인 중 에러가 발생했습니다.'
     }
+    notificationStore.showNotification(error.response?.data?.message || '이메일 중복 확인 중 에러가 발생했습니다.', 'error');
   }
 }
 
 const handleEmailVerification = async () => {
   if (!email.value) {
-    alert('이메일을 먼저 입력해주세요.')
-    return
+    notificationStore.showNotification('이메일을 먼저 입력해주세요.', 'warning');
+    return;
   }
   if (emailStatus.value === 'taken') {
-    alert('이미 사용 중인 이메일입니다. 다른 이메일을 사용해주세요.')
-    return
+    notificationStore.showNotification('이미 사용 중인 이메일입니다. 다른 이메일을 사용해주세요.', 'warning');
+    return;
   }
   if (emailStatus.value !== 'available') {
-    alert('이메일 중복 확인을 먼저 완료해주세요.')
-    return
+    notificationStore.showNotification('이메일 중복 확인을 먼저 완료해주세요.', 'warning');
+    return;
   }
   try {
-    await apiClient.post('/auth/email/send', { email: email.value })
-    alert('인증 메일이 발송되었습니다. 이메일을 확인해주세요.')
-    emailVerificationSent.value = true
+    await apiClient.post('/auth/email/send', { email: email.value });
+    notificationStore.showNotification('인증 메일이 발송되었습니다. 이메일을 확인해주세요.', 'success');
+    emailVerificationSent.value = true;
   } catch (error) {
-    console.error('이메일 인증 요청 실패:', error.response ? error.response.data : error.message)
-    alert('이메일 인증 요청에 실패했습니다.')
+    console.error('이메일 인증 요청 실패:', error.response ? error.response.data : error.message);
+    notificationStore.showNotification(error.response?.data?.message || '이메일 인증 요청에 실패했습니다.', 'error');
   }
 }
 
 const handleCodeVerification = async () => {
   if (!verificationCode.value) {
-    alert('인증코드를 입력해주세요.')
-    return
+    notificationStore.showNotification('인증코드를 입력해주세요.', 'warning');
+    return;
   }
   try {
     await apiClient.post('/auth/email/verify', { 
       email: email.value,
       code: verificationCode.value 
-    })
-    alert('이메일 인증이 완료되었습니다.')
-    isEmailVerified.value = true
+    });
+    notificationStore.showNotification('이메일 인증이 완료되었습니다.', 'success');
+    isEmailVerified.value = true;
   } catch (error) {
-    console.error('인증코드 확인 실패:', error.response ? error.response.data : error.message)
-    alert('인증코드가 올바르지 않습니다.')
+    console.error('인증코드 확인 실패:', error.response ? error.response.data : error.message);
+    notificationStore.showNotification(error.response?.data?.message || '인증코드가 올바르지 않습니다.', 'error');
   }
 }
 
 const handleSignup = async () => {
   if (usernameStatus.value !== 'available') {
-    alert('아이디 중복 확인을 완료해주세요.')
-    return
+    notificationStore.showNotification('아이디 중복 확인을 완료해주세요.', 'warning');
+    return;
   }
   if (nicknameStatus.value !== 'available') {
-    alert('닉네임 중복 확인을 완료해주세요.')
-    return
+    notificationStore.showNotification('닉네임 중복 확인을 완료해주세요.', 'warning');
+    return;
   }
   if (!isEmailVerified.value) {
-    alert('이메일 인증을 먼저 완료해주세요.')
-    return
+    notificationStore.showNotification('이메일 인증을 먼저 완료해주세요.', 'warning');
+    return;
   }
   if (passwordMismatch.value) {
-    alert('비밀번호가 일치하지 않습니다.')
-    return
+    notificationStore.showNotification('비밀번호가 일치하지 않습니다.', 'warning');
+    return;
   }
 
   try {
@@ -336,13 +350,13 @@ const handleSignup = async () => {
       nickname: nickname.value,
       email: email.value,
       password: password.value
-    })
-    alert('회원가입에 성공했습니다! 추가 정보 입력 페이지로 이동합니다.')
-        authStore.setFirstStepCompleted(true) // 1차 회원가입 완료 플래그 설정
-    router.push('/additional-info') // 추가 정보 입력 페이지로 리다이렉트
+    });
+    notificationStore.showNotification('회원가입에 성공했습니다! 추가 정보 입력 페이지로 이동합니다.', 'success');
+    authStore.setFirstStepCompleted(true);
+    router.push('/additional-info');
   } catch (error) {
-    console.error('회원가입 실패:', error.response ? error.response.data : error.message)
-    alert('회원가입에 실패했습니다. 입력 내용을 확인해주세요.')
+    console.error('회원가입 실패:', error.response ? error.response.data : error.message);
+    notificationStore.showNotification(error.response?.data?.message || '회원가입에 실패했습니다. 입력 내용을 확인해주세요.', 'error');
   }
 }
 </script>
