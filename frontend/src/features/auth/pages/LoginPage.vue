@@ -27,8 +27,8 @@
                 <BrainCircuit class="w-6 h-6" />
               </div>
               <div>
-                <p class="font-semibold text-gray-900">AI 기반 식단 분석</p>
-                <p class="text-sm text-gray-600">사진만으로 식단을 분석하고, AI가 영양 점수를 계산해줘요.</p>
+                <p class="font-semibold text-gray-900">AI 식단 추천</p>
+                <p class="text-sm text-gray-600">개인 맞춤형 AI 식단 추천으로 건강한 식습관을 만드세요.</p>
               </div>
             </div>
             <div class="flex items-start gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-white/50 hover:shadow-lg hover:scale-105">
@@ -36,8 +36,17 @@
                 <TrendingUp class="w-6 h-6" />
               </div>
               <div>
-                <p class="font-semibold text-gray-900">건강 점수 트래킹</p>
+                <p class="font-semibold text-gray-900">AI 건강 점수 트래킹</p>
                 <p class="text-sm text-gray-600">매일의 건강 점수 변화를 차트로 확인하고 관리할 수 있어요.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-white/50 hover:shadow-lg hover:scale-105">
+              <div class="w-10 h-10 rounded-xl bg-white/60 backdrop-blur-sm flex items-center justify-center text-orange-500 flex-shrink-0">
+                <FileText class="w-6 h-6" />
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900">AI 식단 레포트</p>
+                <p class="text-sm text-gray-600">일간/주간/월간 단위 AI 식단 레포트로 내 식단을 한눈에.</p>
               </div>
             </div>
             <div class="flex items-start gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-white/50 hover:shadow-lg hover:scale-105">
@@ -52,7 +61,7 @@
           </div>
         </div>
       </transition>
-
+          
       <!-- Right side - Login form -->
       <transition appear name="fade-slide-right">
         <div class="bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl p-1 shadow-2xl">
@@ -157,11 +166,11 @@
     </div>
   </div>
 </template>
-
+          
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { User, Lock, Github, Eye, EyeOff, BrainCircuit, TrendingUp, Users } from 'lucide-vue-next'
+import { User, Lock, Github, Eye, EyeOff, BrainCircuit, TrendingUp, Users, FileText } from 'lucide-vue-next'
 import apiClient from '../../../api'
 import { useAuthStore } from '../../../stores/auth'
 import { useNotificationStore } from '../../../stores/notification'
@@ -303,3 +312,4 @@ const handleSocialLogin = (provider) => {
   animation-delay: 2s;
 }
 </style>
+

@@ -6,8 +6,6 @@
       <p class="text-gray-600 text-lg md:text-xl">오늘의 식단과 영양 정보를 확인하고, AI 추천과 함께 건강 점수 추이를 관리해보세요.</p>
     </div>
 
-    
-
     <!-- Main Dashboard Layout -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
