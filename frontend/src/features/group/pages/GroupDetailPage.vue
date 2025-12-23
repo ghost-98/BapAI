@@ -21,7 +21,7 @@
             #{{ tag }}
           </span>
         </div>
-        <div class="mt-6 flex flex-wrap gap-4 items-center">
+        <div v-if="!isLeader" class="mt-6 flex flex-wrap gap-4 items-center">
             <button @click="handleLeaveGroup" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium shadow-lg shadow-red-500/30 transition-all flex items-center gap-2">
                 <LogOut class="w-5 h-5" />
                 <span>그룹 탈퇴</span>
@@ -59,11 +59,6 @@
               :active-challenges="challenges.slice(0, 2)"
               :spotlight-members="spotlightMembers"
             />
-        </div>
-
-        <!-- 게시판 탭 -->
-        <div v-if="activeTab === 'board'" class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-md border border-gray-200/80 p-6">
-          <GroupBoard />
         </div>
         
         <!-- 그룹 관리 탭 -->
@@ -145,7 +140,6 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { LayoutDashboard, MessageSquare, Trophy, ShieldCheck, Loader2, AlertCircle, Settings, LogOut } from 'lucide-vue-next';
-import GroupBoard from '../components/GroupBoard.vue';
 import GroupDashboard from '@/features/group/components/GroupDashboard.vue';
 import GroupManagement from '@/features/group/components/GroupManagement.vue';
 import { fetchGroupById, updateGroup, leaveGroupApi } from '@/api';
@@ -162,16 +156,15 @@ const loading = ref(true);
 const error = ref(null);
 const notificationStore = useNotificationStore();
 const authStore = useAuthStore();
-const currentUserId = computed(() => authStore.user?.userId);
 
 const isLeader = computed(() => {
-  return group.value && group.value.leaderId === currentUserId.value;
+  // API 응답에 포함된 'owner' 필드를 기준으로 그룹장 여부를 판단합니다.
+  return group.value && group.value.owner === true;
 });
 
 const tabs = computed(() => {
   const baseTabs = [
     { id: 'dashboard', name: '대시보드', icon: LayoutDashboard },
-    { id: 'board', name: '게시판', icon: MessageSquare },
     { id: 'ranking', name: '랭킹', icon: Trophy },
     { id: 'challenges', name: '챌린지', icon: ShieldCheck },
   ];

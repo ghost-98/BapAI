@@ -9,7 +9,7 @@
         </div>
         <button @click="openCreateModal" class="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2">
           <PlusCircle class="w-5 h-5" />
-          <span>새 그룹 만들기</span>
+          <span>새 그룹</span>
         </button>
       </div>
     </div>
@@ -79,68 +79,24 @@
       <!-- 그룹 목록 -->
       <div>
         <div v-if="activeTab === 'all'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="group in allGroups" :key="group.groupId" @click="goToGroupDetail(group.groupId)" class="group-card-outer">
-            <div class="group-card-inner flex flex-col justify-between h-full">
-              <div class="mb-4">
-                <div class="flex items-center justify-between mb-2">
-                  <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <Users class="w-6 h-6 text-orange-500" />
-                    {{ group.name }}
-                  </h3>
-                  <span :class="['px-3 py-1 text-xs font-semibold rounded-full', group.type === 'PUBLIC' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800']">
-                    {{ group.type === 'PUBLIC' ? '공개' : '비공개' }}
-                  </span>
-                </div>
-                <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ group.description }}</p>
-                <div class="flex flex-wrap gap-2 mt-2" v-if="group.tags && group.tags.length">
-                  <span v-for="tag in group.tags" :key="tag" class="px-2 py-1 bg-orange-100 text-orange-700 rounded-md text-xs font-medium">
-                    #{{ tag }}
-                  </span>
-                </div>
-              </div>
-              
-              <div class="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-200/80 mt-auto">
-                <div class="flex items-center gap-2">
-                  <Users class="w-4 h-4" />
-                  <span>{{ group.memberCount }} / {{ group.maxMember }}명</span>
-                </div>
-                <button v-if="!group.isJoined" @click.stop="joinGroup(group.groupId)" class="px-4 py-1.5 bg-orange-500 text-white rounded-full text-xs font-semibold hover:bg-orange-600 transition-all">
-                  참여하기
-                </button>
-                <span v-else class="text-green-600 font-semibold">참여중</span>
-              </div>
-            </div>
-          </div>
+          <GroupCard 
+            v-for="group in allGroups" 
+            :key="group.groupId" 
+            :group="group"
+            @view-details="goToGroupDetail"
+            @join="joinGroup"
+          />
           <p v-if="allGroups.length === 0" class="text-gray-500 text-center py-10 col-span-full">검색 결과가 없습니다.</p>
         </div>
 
         <div v-if="activeTab === 'my'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="group in myGroups" :key="group.groupId" @click="goToGroupDetail(group.groupId)" class="group-card-outer">
-            <div class="group-card-inner flex flex-col justify-between h-full">
-              <div class="mb-4">
-                <div class="flex items-center justify-between mb-2">
-                  <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <Users class="w-6 h-6 text-orange-500" />
-                    {{ group.name }}
-                  </h3>
-                </div>
-                <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ group.description }}</p>
-                <div class="flex flex-wrap gap-2 mt-2" v-if="group.tags && group.tags.length">
-                  <span v-for="tag in group.tags" :key="tag" class="px-2 py-1 bg-orange-100 text-orange-700 rounded-md text-xs font-medium">
-                    #{{ tag }}
-                  </span>
-                </div>
-              </div>
-              
-              <div class="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-200/80 mt-auto">
-                <div class="flex items-center gap-2">
-                  <Users class="w-4 h-4" />
-                  <span>{{ group.memberCount }} / {{ group.maxMember }}명</span>
-                </div>
-                <span class="text-green-600 font-semibold">참여중</span>
-              </div>
-            </div>
-          </div>
+          <GroupCard 
+            v-for="group in myGroups" 
+            :key="group.groupId" 
+            :group="group"
+            @view-details="goToGroupDetail"
+            :isMyGroupsView="true"
+          />
         </div>
           <p v-if="myGroups.length === 0" class="text-gray-500 text-center py-10 col-span-full">가입한 그룹이 없습니다.</p>
       </div>
@@ -157,7 +113,8 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { PlusCircle, Users, Search, X } from 'lucide-vue-next'
+import { PlusCircle, Users, Search, X } from 'lucide-vue-next';
+import GroupCard from '@/features/group/components/GroupCard.vue';
 import GroupCreateModal from '@/features/group/components/GroupCreateModal.vue'
 import { fetchGroups, fetchMyGroups, createGroupApi, joinGroupApi, fetchAvailableTags } from '@/api' // Import the new API function fetchAvailableTags
 import { useNotificationStore } from '@/stores/notification' // Import notification store
@@ -224,7 +181,8 @@ const fetchAllGroups = async () => {
     // Add isJoined property based on currentUserId
     allGroups.value = response.map(group => ({
       ...group,
-      isJoined: group.memberIds && group.memberIds.includes(currentUserId)
+      isOwner: group.owner,
+      isJoined: group.joined
     }));
   } catch (error) {
     console.error('Failed to fetch groups:', error);
@@ -237,7 +195,11 @@ const loadMyGroupsData = async () => {
   console.log('Fetching my groups from /groups/me...');
   try {
     const response = await fetchMyGroups(); // API 함수 호출
-    myGroups.value = response;
+    myGroups.value = response.map(group => ({
+      ...group,
+      isOwner: group.owner,
+      isJoined: group.joined
+    }));
     console.log('API response for my groups:', myGroups.value);
   } catch (error) {
     console.error('Failed to fetch my groups:', error);
@@ -285,11 +247,13 @@ const handleCreateGroup = async (newGroupData) => {
     // Assuming the API returns the full group object including ID, memberCount, etc.
     allGroups.value.unshift({
       ...createdGroup,
-      isJoined: true // The creator is joined by default
+      joined: true, // The creator is joined by default
+      owner: true // The creator is the owner
     });
     myGroups.value.unshift({
       ...createdGroup,
-      isJoined: true
+      joined: true,
+      owner: true
     });
 
     notificationStore.showNotification('새 그룹이 성공적으로 생성되었습니다!', 'success');
@@ -347,7 +311,7 @@ onMounted(async () => {
 
 <style scoped>
 .group-card-outer {
-  @apply p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  @apply p-1 rounded-3xl shadow-lg cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
 }
 .group-card-inner {
   @apply h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50;

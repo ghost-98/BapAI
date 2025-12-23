@@ -32,16 +32,6 @@
 
     <!-- Right Column -->
     <div class="lg:col-span-2 space-y-8">
-      <!-- Recent Posts -->
-      <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-md border border-gray-200/80 p-6">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">최근 게시글</h3>
-        <div class="space-y-3">
-          <div v-for="post in recentPosts" :key="post.id" class="bg-gray-50/70 p-3 rounded-lg text-sm">
-            <p class="font-semibold text-gray-700 truncate">{{ post.title }}</p>
-            <p class="text-xs text-gray-500">{{ post.author }}</p>
-          </div>
-        </div>
-      </div>
 
       <!-- Active Challenges -->
       <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-md border border-gray-200/80 p-6">

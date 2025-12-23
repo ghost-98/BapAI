@@ -13,8 +13,6 @@ import BoardWritePage from '../features/board/pages/BoardWritePage.vue'
 import MyInfoPage from '../features/user/pages/MyInfoPage.vue'
 import GroupListPage from '../features/group/pages/GroupListPage.vue'
 import GroupDetailPage from '../features/group/pages/GroupDetailPage.vue'
-import GroupBoard from '../features/group/components/GroupBoard.vue' // GroupBoard 임포트
-import GroupBoardDetailPage from '../features/group/pages/GroupBoardDetailPage.vue' // GroupBoardDetailPage 임포트
 
 // Auth 관련 페이지
 import LoginPage from '../features/auth/pages/LoginPage.vue'
@@ -23,7 +21,6 @@ import AdditionalInfoPage from '../features/auth/pages/AdditionalInfoPage.vue'
 import FindUsernamePage from '../features/auth/pages/FindUsernamePage.vue'
 import FindPasswordPage from '../features/auth/pages/FindPasswordPage.vue'
 import ConfirmPasswordPage from '../features/auth/pages/ConfirmPasswordPage.vue'
-import EditProfilePage from '../features/user/pages/EditProfilePage.vue'
 import ChangePasswordPage from '../features/user/pages/ChangePasswordPage.vue'
 
 // 소셜 로그인 콜백 페이지
@@ -48,10 +45,7 @@ const mainRoutes = {
     { path: 'board/:boardId', name: 'BoardDetail', component: BoardDetailPage, props: true },
     { path: 'group', name: 'GroupList', component: GroupListPage },
     { path: 'groups/:groupId', name: 'GroupDetail', component: GroupDetailPage, props: true },
-    { path: 'groups/:groupId/board', name: 'GroupBoard', component: GroupBoard, props: true }, // 그룹 게시판 목록
-    { path: 'groups/:groupId/board/:boardId', name: 'GroupBoardDetail', component: GroupBoardDetailPage, props: true }, // 그룹 게시판 상세
     { path: 'my-info', name: 'MyInfo', component: MyInfoPage, meta: { requiresReauth: true } },
-    { path: 'edit-profile', name: 'EditProfile', component: EditProfilePage, meta: { requiresReauth: true } },
     { path: 'change-password', name: 'ChangePassword', component: ChangePasswordPage, meta: { requiresAuth: true } },
   ],
 };
