@@ -1,7 +1,7 @@
 <template>
-  <main class="mx-auto max-w-7xl px-6 py-12">
+  <div class="space-y-8">
     <!-- 페이지 헤더 -->
-    <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50 mb-8">
+    <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
       <div class="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between">
         <div class="mb-4 sm:mb-0">
           <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2 tracking-tight">그룹 탐색</h1>
@@ -15,7 +15,7 @@
     </div>
 
     <!-- 검색 및 필터링 -->
-    <div v-if="activeTab === 'all'" class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50 mb-8">
+    <div v-if="activeTab === 'all'" class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
       <div class="flex gap-2 mb-4">
         <div class="relative flex-grow">
           <input
@@ -23,14 +23,14 @@
             v-model="searchQuery"
             placeholder="그룹명 또는 태그로 검색..."
             class="w-full px-5 py-3 pl-12 pr-10 border border-gray-300 rounded-xl focus:ring-orange-500 focus:border-orange-500 text-gray-800 bg-gray-50"
-            @keyup.enter="fetchAllGroups"
+            @keyup.enter="handleSearch"
           />
           <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <button v-if="searchQuery" @click="searchQuery = ''" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
             <X class="w-5 h-5" />
           </button>
         </div>
-        <button @click="fetchAllGroups" class="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2">
+        <button @click="handleSearch" class="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2">
           <span>검색</span>
         </button>
       </div>
@@ -78,30 +78,48 @@
 
       <!-- 그룹 목록 -->
       <div>
-        <div v-if="activeTab === 'all'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <GroupCard 
-            v-for="group in allGroups" 
-            :key="group.groupId" 
-            :group="group"
-            @view-details="goToGroupDetail"
-            @join="joinGroup"
-          />
+        <div v-if="activeTab === 'all'">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <GroupCard 
+              v-for="group in allGroups" 
+              :key="group.groupId" 
+              :group="group"
+              @view-details="goToGroupDetail"
+              @join="joinGroup"
+            />
+          </div>
           <p v-if="allGroups.length === 0" class="text-gray-500 text-center py-10 col-span-full">검색 결과가 없습니다.</p>
+          <Pagination
+            v-if="allGroupsPagination.totalPages > 1"
+            :current-page="allGroupsPagination.page"
+            :total-pages="allGroupsPagination.totalPages"
+            @page-change="handleAllGroupsPageChange"
+            class="mt-8"
+          />
         </div>
 
-        <div v-if="activeTab === 'my'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <GroupCard 
-            v-for="group in myGroups" 
-            :key="group.groupId" 
-            :group="group"
-            @view-details="goToGroupDetail"
-            :isMyGroupsView="true"
+        <div v-if="activeTab === 'my'">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <GroupCard 
+              v-for="group in myGroups" 
+              :key="group.groupId" 
+              :group="group"
+              @view-details="goToGroupDetail"
+              :isMyGroupsView="true"
+            />
+          </div>
+          <p v-if="myGroups.length === 0" class="text-gray-500 text-center py-10 col-span-full">가입한 그룹이 없습니다.</p>
+          <Pagination
+            v-if="myGroupsPagination.totalPages > 1"
+            :current-page="myGroupsPagination.page"
+            :total-pages="myGroupsPagination.totalPages"
+            @page-change="handleMyGroupsPageChange"
+            class="mt-8"
           />
         </div>
-          <p v-if="myGroups.length === 0" class="text-gray-500 text-center py-10 col-span-full">가입한 그룹이 없습니다.</p>
       </div>
     </div>
-  </main>
+  </div>
 
   <GroupCreateModal
     v-if="isCreateModalVisible"
@@ -111,32 +129,32 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { PlusCircle, Users, Search, X } from 'lucide-vue-next';
+import { PlusCircle, Search, X } from 'lucide-vue-next';
 import GroupCard from '@/features/group/components/GroupCard.vue';
 import GroupCreateModal from '@/features/group/components/GroupCreateModal.vue'
-import { fetchGroups, fetchMyGroups, createGroupApi, joinGroupApi, fetchAvailableTags } from '@/api' // Import the new API function fetchAvailableTags
-import { useNotificationStore } from '@/stores/notification' // Import notification store
+import Pagination from '@/components/common/Pagination.vue';
+import { fetchGroups, fetchMyGroups, createGroupApi, joinGroupApi, fetchAvailableTags } from '@/api'
+import { useNotificationStore } from '@/stores/notification'
 
 const router = useRouter()
+const notificationStore = useNotificationStore()
+
 const activeTab = ref('all')
 const isCreateModalVisible = ref(false)
-const isLoadingCreate = ref(false) // Loading state for group creation
-const isLoadingJoin = ref(false) // Loading state for joining a group
+const isLoadingCreate = ref(false)
+const isLoadingJoin = ref(false)
 
 const searchQuery = ref('')
 const selectedTags = ref([])
-const allGroups = ref([]) // Will be populated by API
-const myGroups = ref([]) // Will be populated by API or filtered from allGroups
-const availableTags = ref([]) // Dynamically fetched tags
+const availableTags = ref([])
 
-const notificationStore = useNotificationStore()
+const allGroups = ref([])
+const allGroupsPagination = ref({ page: 1, size: 12, totalPages: 1, totalElements: 0, hasNext: false })
 
-// Mock current user ID for demonstration. Replace with actual auth store user ID.
-const currentUserId = 1; 
-
-// Removed hardcoded availableTags
+const myGroups = ref([])
+const myGroupsPagination = ref({ page: 1, size: 12, totalPages: 1, totalElements: 0, hasNext: false })
 
 const tabs = [
   { id: 'all', name: '전체 그룹' },
@@ -150,13 +168,18 @@ const toggleTag = (tag) => {
   } else {
     selectedTags.value.push(tag);
   }
-  fetchAllGroups(); // Fetch groups immediately after tag change
+  handleSearch();
 };
 
 const clearSelectedTags = () => {
   selectedTags.value = [];
-  fetchAllGroups(); // Fetch groups immediately after clearing tags
+  handleSearch();
 };
+
+const handleSearch = () => {
+  allGroupsPagination.value.page = 1;
+  fetchAllGroups();
+}
 
 const fetchAllGroups = async () => {
   const keywordParts = [];
@@ -166,41 +189,40 @@ const fetchAllGroups = async () => {
   if (selectedTags.value.length > 0) {
     selectedTags.value.forEach(tag => keywordParts.push(`${tag}`));
   }
+  const keywordString = keywordParts.join(' ').trim();
 
-  const keywordString = keywordParts.join(' ').trim(); // Join parts with space and trim any leading/trailing space
-
-  console.log('Fetching all groups with params:', { keyword: keywordString });
   try {
-    const params = {};
+    const params = {
+      page: allGroupsPagination.value.page,
+      size: allGroupsPagination.value.size,
+    };
     if (keywordString) {
       params.keyword = keywordString;
     }
     
     const response = await fetchGroups(params);
-    console.log('API response for all groups:', response);
-    // Add isJoined property based on currentUserId
-    allGroups.value = response.map(group => ({
-      ...group,
-      isOwner: group.owner,
-      isJoined: group.joined
-    }));
+    allGroups.value = response.list;
+    const { list, ...paginationData } = response;
+    allGroupsPagination.value = paginationData;
+
   } catch (error) {
     console.error('Failed to fetch groups:', error);
     notificationStore.showNotification('그룹 목록을 불러오는데 실패했습니다.', 'error');
-    allGroups.value = []; // Clear groups on error
+    allGroups.value = [];
   }
 };
 
 const loadMyGroupsData = async () => {
-  console.log('Fetching my groups from /groups/me...');
   try {
-    const response = await fetchMyGroups(); // API 함수 호출
-    myGroups.value = response.map(group => ({
-      ...group,
-      isOwner: group.owner,
-      isJoined: group.joined
-    }));
-    console.log('API response for my groups:', myGroups.value);
+    const params = {
+      page: myGroupsPagination.value.page,
+      size: myGroupsPagination.value.size,
+    };
+    const response = await fetchMyGroups(params);
+    // Filter out groups that are not yet joined (e.g., 'WAIT' status)
+    myGroups.value = response.list.filter(group => group.role === 'LEADER' || group.role === 'MEMBER');
+    const { list, ...paginationData } = response;
+    myGroupsPagination.value = paginationData;
   } catch (error) {
     console.error('Failed to fetch my groups:', error);
     notificationStore.showNotification('내가 가입한 그룹 목록을 불러오는데 실패했습니다.', 'error');
@@ -208,21 +230,22 @@ const loadMyGroupsData = async () => {
   }
 };
 
-// Remove debounce for search input as it's now triggered by button/enter
-// watch([searchQuery, selectedTags], () => {
-//   clearTimeout(searchTimeout);
-//   searchTimeout = setTimeout(() => {
-//     if (activeTab.value === 'all') {
-//       fetchAllGroups();
-//     }
-//   }, 300); // 300ms debounce
-// });
+const handleAllGroupsPageChange = (newPage) => {
+  allGroupsPagination.value.page = newPage;
+  fetchAllGroups();
+};
 
-// Watch for activeTab changes to refetch groups
+const handleMyGroupsPageChange = (newPage) => {
+  myGroupsPagination.value.page = newPage;
+  loadMyGroupsData();
+};
+
 watch(activeTab, (newTab) => {
   if (newTab === 'all') {
+    allGroupsPagination.value.page = 1;
     fetchAllGroups();
   } else if (newTab === 'my') {
+    myGroupsPagination.value.page = 1;
     loadMyGroupsData();
   }
 });
@@ -237,28 +260,17 @@ const closeCreateModal = () => {
 
 const handleCreateGroup = async (newGroupData) => {
   isLoadingCreate.value = true;
-  notificationStore.hideNotification(); // Clear previous notifications
+  notificationStore.hideNotification();
 
   try {
-    const createdGroup = await createGroupApi(newGroupData); // Call the API
-    console.log('Group created successfully:', createdGroup);
-    
-    // Add the created group to allGroups and myGroups
-    // Assuming the API returns the full group object including ID, memberCount, etc.
-    allGroups.value.unshift({
-      ...createdGroup,
-      joined: true, // The creator is joined by default
-      owner: true // The creator is the owner
-    });
-    myGroups.value.unshift({
-      ...createdGroup,
-      joined: true,
-      owner: true
-    });
-
+    const createdGroup = await createGroupApi(newGroupData);
     notificationStore.showNotification('새 그룹이 성공적으로 생성되었습니다!', 'success');
-    closeCreateModal(); // Close the modal on success
-    activeTab.value = 'my'; // Optionally, switch to 'my' tab
+    closeCreateModal();
+    
+    // Refetch both lists to ensure data consistency
+    fetchAllGroups();
+    loadMyGroupsData();
+    activeTab.value = 'my';
   } catch (error) {
     console.error('Failed to create group:', error);
     notificationStore.showNotification('그룹 생성에 실패했습니다. 다시 시도해주세요.', 'error');
@@ -271,32 +283,53 @@ const joinGroup = async (groupId) => {
   isLoadingJoin.value = true;
   notificationStore.hideNotification();
 
+  const groupIndex = allGroups.value.findIndex(g => g.groupId === groupId);
+  if (groupIndex === -1) {
+    isLoadingJoin.value = false;
+    return;
+  }
+
+  const group = allGroups.value[groupIndex];
+  const isPrivate = group.type === 'PRIVATE';
+
   try {
-    await joinGroupApi(groupId); // API call to join the group
-    notificationStore.showNotification('그룹에 성공적으로 참여했습니다!', 'success');
-    
-    // Update local data
-    const groupIndex = allGroups.value.findIndex(g => g.groupId === groupId);
-    if (groupIndex !== -1) {
-      const joinedGroup = { ...allGroups.value[groupIndex], isJoined: true, memberCount: allGroups.value[groupIndex].memberCount + 1 };
-      allGroups.value.splice(groupIndex, 1, joinedGroup);
-      myGroups.value.unshift(joinedGroup); // Add to myGroups
+    await joinGroupApi(groupId); // Call the API
+
+    const updatedGroup = { ...group };
+
+    if (isPrivate) {
+      updatedGroup.role = 'WAIT';
+      notificationStore.showNotification('그룹장에게 참여 요청을 보냈습니다.', 'info');
+    } else { // Public group
+      updatedGroup.role = 'MEMBER';
+      updatedGroup.memberCount++;
+      notificationStore.showNotification('그룹에 성공적으로 참여했습니다!', 'success');
+      loadMyGroupsData(); // Reload my groups list
     }
+    
+    // Replace the old group object with the updated one
+    allGroups.value.splice(groupIndex, 1, updatedGroup);
+
   } catch (error) {
     console.error('그룹 참여 실패:', error);
-    notificationStore.showNotification('그룹 참여에 실패했습니다. 다시 시도해주세요.', 'error');
+    notificationStore.showNotification(error.response?.data?.message || '그룹 참여에 실패했습니다. 다시 시도해주세요.', 'error');
   } finally {
     isLoadingJoin.value = false;
   }
 };
 
 const goToGroupDetail = (groupId) => {
-  router.push({ name: 'GroupDetail', params: { groupId } })
+  const group = allGroups.value.find(g => g.groupId === groupId) || myGroups.value.find(g => g.groupId === groupId);
+  if (group) {
+    if (group.role === 'LEADER' || group.role === 'MEMBER') {
+      router.push({ name: 'GroupDetail', params: { groupId } });
+    } else {
+      notificationStore.showNotification('참여한 그룹이 아닙니다.', 'info');
+    }
+  }
 }
 
-// Initial fetch when component mounts
 onMounted(async () => {
-  // Fetch available tags first
   try {
     availableTags.value = await fetchAvailableTags();
   } catch (error) {
@@ -304,8 +337,8 @@ onMounted(async () => {
     notificationStore.showNotification('태그 목록을 불러오는데 실패했습니다.', 'error');
   }
 
-  await fetchAllGroups();
-  await loadMyGroupsData();
+  fetchAllGroups();
+  loadMyGroupsData();
 });
 </script>
 

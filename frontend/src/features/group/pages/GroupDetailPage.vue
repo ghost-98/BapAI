@@ -16,6 +16,7 @@
       <div class="mb-8">
         <h1 class="text-4xl font-bold text-gray-900">{{ group.name }}</h1>
         <p class="mt-2 text-lg text-gray-600">{{ group.description }}</p>
+        <p v-if="group.ownerName" class="mt-1 text-base text-gray-700">그룹장: {{ group.ownerName }}</p>
         <div class="mt-4 flex flex-wrap gap-2">
           <span v-for="tag in group.tags" :key="tag" class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-semibold">
             #{{ tag }}
@@ -64,6 +65,11 @@
         <!-- 그룹 관리 탭 -->
         <div v-if="activeTab === 'management'">
           <GroupManagement :group-id="groupId" @group-updated="fetchGroupDetails" />
+        </div>
+
+        <!-- 채팅 탭 -->
+        <div v-if="activeTab === 'chat'">
+          <GroupChat :group-id="groupId" />
         </div>
 
         <!-- 랭킹 탭 -->
@@ -142,6 +148,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { LayoutDashboard, MessageSquare, Trophy, ShieldCheck, Loader2, AlertCircle, Settings, LogOut } from 'lucide-vue-next';
 import GroupDashboard from '@/features/group/components/GroupDashboard.vue';
 import GroupManagement from '@/features/group/components/GroupManagement.vue';
+import GroupChat from '@/features/group/components/GroupChat.vue';
 import { fetchGroupById, updateGroup, leaveGroupApi } from '@/api';
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
@@ -158,13 +165,13 @@ const notificationStore = useNotificationStore();
 const authStore = useAuthStore();
 
 const isLeader = computed(() => {
-  // API 응답에 포함된 'owner' 필드를 기준으로 그룹장 여부를 판단합니다.
-  return group.value && group.value.owner === true;
+  return group.value && group.value.role === 'LEADER';
 });
 
 const tabs = computed(() => {
   const baseTabs = [
     { id: 'dashboard', name: '대시보드', icon: LayoutDashboard },
+    { id: 'chat', name: '채팅', icon: MessageSquare },
     { id: 'ranking', name: '랭킹', icon: Trophy },
     { id: 'challenges', name: '챌린지', icon: ShieldCheck },
   ];

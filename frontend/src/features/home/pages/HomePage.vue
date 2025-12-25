@@ -165,9 +165,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-screen-2xl px-4 sm:px-6 py-12">
+  <div class="space-y-8">
     <!-- Header -->
-    <div class="mb-8 flex justify-between items-center">
+    <div class="flex justify-between items-center">
       <h1 class="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">안녕하세요, <span class="text-orange-600">{{ authStore.userName }}님!</span></h1>
       <!-- Mini Dashboard in Header -->
       <div class="hidden md:flex items-center gap-3">

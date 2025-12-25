@@ -31,12 +31,13 @@
       
       <!-- Footer: Action Button/Badge -->
       <div class="flex items-center justify-center pt-4 border-t border-gray-200/80 mt-auto">
-        <span v-if="group.isOwner" class="flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold">
+        <span v-if="group.role === 'LEADER'" class="flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold">
           <Crown class="w-4 h-4" />
           방장
         </span>
-        <span v-else-if="group.isJoined" class="text-green-600 font-semibold">참여중</span>
-        <template v-else-if="!isMyGroupsView">
+        <span v-else-if="group.role === 'MEMBER'" class="text-green-600 font-semibold">참여중</span>
+        <span v-else-if="group.role === 'WAIT'" class="text-gray-500 font-semibold">승인 대기중</span>
+        <template v-else-if="group.role === 'NONE' && !isMyGroupsView">
           <button 
             v-if="group.memberCount >= group.maxMember" 
             class="px-4 py-1.5 bg-gray-300 text-gray-600 rounded-full text-xs font-semibold cursor-not-allowed" 

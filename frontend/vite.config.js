@@ -20,4 +20,7 @@ export default defineConfig({
     allowedHosts: ['.loca.lt', '.app', 'localhost', '127.0.0.1']
   },
   appType: 'spa',
+  define: {
+    global: 'window',
+  },
 })

@@ -93,7 +93,7 @@
       </header>
       
       <!-- Page Content -->
-      <main class="mx-auto max-w-screen-2xl px-4 sm:px-6 py-8 flex-1">
+      <main class="mx-auto max-w-7xl px-4 sm:px-6 py-8 flex-1">
         <router-view />
       </main>
     </div>

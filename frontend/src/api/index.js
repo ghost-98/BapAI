@@ -227,9 +227,9 @@ export const fetchGroups = async (params) => {
   }
 };
 
-export const fetchMyGroups = async () => {
+export const fetchMyGroups = async (params) => {
   try {
-    const response = await apiClient.get(`/groups/me`);
+    const response = await apiClient.get(`/groups/me`, { params });
     return response.data;
   } catch (error) {
     console.error('내 그룹 목록 불러오기 실패:', error);
@@ -249,7 +249,7 @@ export const fetchGroupById = async (groupId) => {
 
 export const updateGroup = async (groupId, groupData) => {
   try {
-    const response = await apiClient.put(`/groups/${groupId}`, groupData);
+    const response = await apiClient.patch(`/groups/${groupId}`, groupData);
     return response.data;
   } catch (error) {
     console.error('그룹 업데이트 실패:', error);
@@ -287,70 +287,114 @@ export const leaveGroupApi = async (groupId) => {
   }
 };
 
-// --- 추가된 그룹 관리 API 함수들 ---
-
 export const deleteGroup = async (groupId) => {
-  console.log(`[API MOCK] Deleting group ${groupId}`);
-  // 실제 구현: return await apiClient.delete(`/groups/${groupId}`);
-  return new Promise(resolve => setTimeout(() => {
-    console.log(`[API MOCK] Group ${groupId} deleted successfully.`);
-    resolve({ message: '그룹이 성공적으로 삭제되었습니다.' });
-  }, 500));
+  try {
+    const response = await apiClient.delete(`/groups/${groupId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`그룹 ${groupId} 삭제 실패:`, error);
+    throw error;
+  }
 };
 
 export const fetchGroupMembers = async (groupId) => {
-  console.log(`[API MOCK] Fetching members for group ${groupId}`);
-  // 실제 구현: return await apiClient.get(`/groups/${groupId}/members`);
-  return new Promise(resolve => setTimeout(() => {
-    const members = [
-      { userId: 1, nickname: '그룹장' },
-      { userId: 4, nickname: '김지원' },
-      { userId: 2, nickname: '건강지킴이' },
-      { userId: 5, nickname: '식단초보' },
-    ];
-    console.log(`[API MOCK] Fetched members for group ${groupId}:`, members);
-    resolve(members);
-  }, 500));
+  try {
+    const response = await apiClient.get(`/groups/${groupId}/members`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch members for group ${groupId}:`, error);
+    throw error;
+  }
 };
 
 export const delegateGroupLeader = async (groupId, newLeaderId) => {
-  console.log(`[API MOCK] Delegating leader of group ${groupId} to user ${newLeaderId}`);
-  // 실제 구현: return await apiClient.post(`/groups/${groupId}/delegate`, { newLeaderId });
-  return new Promise(resolve => setTimeout(() => {
-    console.log(`[API MOCK] Delegated leader for group ${groupId} successfully.`);
-    resolve({ message: '그룹장 위임이 성공적으로 완료되었습니다.' });
-  }, 500));
+  try {
+    const response = await apiClient.put(`/groups/${groupId}/delegate/${newLeaderId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to delegate leader for group ${groupId} to user ${newLeaderId}:`, error);
+    throw error;
+  }
 };
 
+export const searchUsersForGroupInvite = async (groupId, nickname) => {
+  try {
+    const response = await apiClient.get(`/groups/${groupId}/search-users`, { params: { nickname } });
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to search users for group ${groupId}:`, error);
+    throw error;
+  }
+}
+
+export const inviteUserToGroup = async (groupId, targetUserId) => {
+  try {
+    const response = await apiClient.post(`/groups/${groupId}/invite/${targetUserId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to invite user ${targetUserId} to group ${groupId}:`, error);
+    throw error;
+  }
+}
+
 export const fetchGroupJoinRequests = async (groupId) => {
-  console.log(`[API MOCK] Fetching join requests for group ${groupId}`);
-   // 실제 구현: return await apiClient.get(`/groups/${groupId}/join-requests`);
-  return new Promise(resolve => setTimeout(() => {
-    const requests = [
-      { userId: 10, nickname: '다이어트새내기', requestedAt: new Date() },
-      { userId: 11, nickname: '도전하는유저', requestedAt: new Date(Date.now() - 3600000) },
-    ];
-    console.log(`[API MOCK] Fetched join requests for group ${groupId}:`, requests);
-    resolve(requests);
-  }, 500));
+  try {
+    const response = await apiClient.get(`/groups/${groupId}/pending`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch join requests for group ${groupId}:`, error);
+    throw error;
+  }
 };
 
 export const approveJoinRequest = async (groupId, userId) => {
-  console.log(`[API MOCK] Approving join request for user ${userId} in group ${groupId}`);
-  // 실제 구현: return await apiClient.post(`/groups/${groupId}/join-requests/approve`, { userId });
-  return new Promise(resolve => setTimeout(() => {
-    console.log(`[API MOCK] Approved join request for user ${userId}.`);
-    resolve({ message: '가입 요청을 승인했습니다.' });
-  }, 500));
+  try {
+    const response = await apiClient.post(`/groups/${groupId}/approve/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to approve join request for user ${userId} in group ${groupId}:`, error);
+    throw error;
+  }
 };
 
 export const rejectJoinRequest = async (groupId, userId) => {
-  console.log(`[API MOCK] Rejecting join request for user ${userId} in group ${groupId}`);
-  // 실제 구현: return await apiClient.post(`/groups/${groupId}/join-requests/reject`, { userId });
-  return new Promise(resolve => setTimeout(() => {
-    console.log(`[API MOCK] Rejected join request for user ${userId}.`);
-    resolve({ message: '가입 요청을 거절했습니다.' });
-  }, 500));
+  try {
+    const response = await apiClient.post(`/groups/${groupId}/reject/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to reject join request for user ${userId} in group ${groupId}:`, error);
+    throw error;
+  }
+};
+
+export const kickGroupMember = async (groupId, userId) => {
+  try {
+    const response = await apiClient.delete(`/groups/${groupId}/kick/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to kick member ${userId} from group ${groupId}:`, error);
+    throw error;
+  }
+};
+
+export const fetchChatHistory = async (groupId) => {
+  try {
+    const response = await apiClient.get(`/chat/${groupId}/history`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch chat history for group ${groupId}:`, error);
+    throw error;
+  }
+};
+
+export const fetchOnlineUsers = async (groupId) => {
+  try {
+    const response = await apiClient.get(`/chat/${groupId}/online`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch online users for group ${groupId}:`, error);
+    throw error;
+  }
 };
 
 // --- /추가된 그룹 관리 API 함수들 ---

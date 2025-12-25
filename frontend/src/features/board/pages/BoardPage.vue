@@ -1,5 +1,5 @@
 <template>
-  <main class="mx-auto max-w-7xl px-4 sm:px-6 py-12 space-y-8">
+  <div class="space-y-8">
     <!-- Header -->
     <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50 flex items-center justify-between">
       <div>
@@ -149,7 +149,7 @@
         class="mt-8"
       />
     </div>
-  </main>
+  </div>
 </template>
 
 <script setup>
