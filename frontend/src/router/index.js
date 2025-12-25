@@ -22,6 +22,7 @@ import FindUsernamePage from '../features/auth/pages/FindUsernamePage.vue'
 import FindPasswordPage from '../features/auth/pages/FindPasswordPage.vue'
 import ConfirmPasswordPage from '../features/auth/pages/ConfirmPasswordPage.vue'
 import ChangePasswordPage from '../features/user/pages/ChangePasswordPage.vue'
+import ConsentPage from '../features/user/pages/ConsentPage.vue' // New import
 
 // 소셜 로그인 콜백 페이지
 import NaverCallbackPage from '../features/auth/pages/callback/NaverCallbackPage.vue'
@@ -57,6 +58,7 @@ const authRoutes = [
   { path: '/find-username', name: 'FindUsername', component: FindUsernamePage },
   { path: '/find-password', name: 'FindPassword', component: FindPasswordPage },
   { path: '/confirm-password', name: 'ConfirmPassword', component: ConfirmPasswordPage, meta: { requiresAuth: true } },
+  { path: '/consent', name: 'Consent', component: ConsentPage }, // New consent page route
   // 소셜 콜백
   { path: '/auth/naver/callback', name: 'NaverCallback', component: NaverCallbackPage },
   { path: '/auth/kakao/callback', name: 'KakaoCallback', component: KakaoCallbackPage },
@@ -114,11 +116,35 @@ router.beforeEach((to, from) => {
     return null;
   };
 
-  const handleMultiStepSignup = (to) => {
-    if (to.name === 'AdditionalInfo' && !authStore.firstStepCompleted) {
-      alert('잘못된 접근입니다. 회원가입을 먼저 진행해주세요.');
-      return { name: 'Signup' };
+  // NEW: Consent Required Guard
+  const handleConsentRequired = (to) => {
+    if (authStore.isLoggedIn && authStore.firstStepCompleted && !authStore.hasGivenConsent) {
+      if (to.name !== 'Consent') {
+        alert('서비스 이용을 위해 건강 정보 수집 및 이용에 동의해야 합니다.');
+        return { name: 'Consent' };
+      }
     }
+    return null;
+  };
+
+  const handleMultiStepSignup = (to) => {
+    // If trying to access AdditionalInfo, ensure previous steps are done
+    if (to.name === 'AdditionalInfo') {
+      if (!authStore.isLoggedIn) { // Should be caught by handleUnauthenticated, but good to double check
+        return { name: 'Login' };
+      }
+      if (!authStore.firstStepCompleted) {
+        alert('잘못된 접근입니다. 회원가입을 먼저 진행해주세요.');
+        return { name: 'Signup' };
+      }
+      if (!authStore.hasGivenConsent) {
+        alert('잘못된 접근입니다. 건강 정보 수집 및 이용에 동의해야 합니다.');
+        return { name: 'Consent' };
+      }
+    }
+    // If trying to access other protected routes, but hasn't completed additional info
+    // This requires a new flag like authStore.additionalInfoCompleted
+    // For now, we'll assume if they've passed consent, they can proceed to additional info.
     return null;
   };
 
@@ -141,6 +167,10 @@ router.beforeEach((to, from) => {
   if (redirect) return redirect;
 
   redirect = handleReauthentication(to);
+  if (redirect) return redirect;
+
+  // NEW: Consent Required Guard
+  redirect = handleConsentRequired(to);
   if (redirect) return redirect;
 
   redirect = handleMultiStepSignup(to);

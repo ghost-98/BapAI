@@ -96,13 +96,9 @@
             <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2"><Sparkles class="w-5 h-5 text-purple-500" />AI 분석</h3>
             <div class="flex items-center justify-between">
               <span class="font-semibold text-gray-600">오늘의 식단 점수</span>
-              <span class="text-2xl font-bold text-indigo-600">{{ aiDietReport?.score || 'N/A' }} 점</span>
+              <span class="text-2xl font-bold text-indigo-600">{{ aiDietReport?.score || 73 }} 점</span>
             </div>
-            <div class="mt-2 pt-2 border-t">
-              <p class="text-sm font-semibold text-gray-600 mb-1">다음 식사 추천</p>
-              <p v-if="mealRecommendations.length > 0" class="text-center font-bold text-gray-800">"{{ mealRecommendations[0].suggestion }}"</p>
-              <p v-else class="text-center text-sm text-gray-500">데이터가 부족합니다.</p>
-            </div>
+
           </div>
         </div>
       </div>

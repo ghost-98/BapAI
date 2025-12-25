@@ -37,7 +37,6 @@
                       </div>
                     </div>
                     <div class="flex flex-col items-end ml-4">
-                      <button @click="$emit('edit-record', record)" class="p-2 text-gray-400 hover:text-orange-600 rounded-full hover:bg-gray-100"><Pencil class="w-4 h-4" /></button>
                       <button @click="$emit('delete-record', record.dietId)" class="p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100"><Trash2 class="w-4 h-4" /></button>
                     </div>
                   </div>

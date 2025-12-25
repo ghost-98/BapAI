@@ -10,6 +10,7 @@
           <div class="space-y-3 text-sm">
             <div class="flex justify-between"><span class="font-semibold text-gray-600">상태</span><span :class="['font-bold', group.type === 'PUBLIC' ? 'text-blue-600' : 'text-gray-800']">{{ group.type === 'PUBLIC' ? '공개' : '비공개' }}</span></div>
             <div class="flex justify-between"><span class="font-semibold text-gray-600">멤버</span><span class="font-bold text-gray-800">{{ group.memberCount }} / {{ group.maxMember }} 명</span></div>
+            <div v-if="group.ownerName" class="flex justify-between"><span class="font-semibold text-gray-600">그룹장</span><span class="font-bold text-gray-800">{{ group.ownerName }}</span></div>
             <div class="flex justify-between"><span class="font-semibold text-gray-600">개설일</span><span class="font-bold text-gray-800">{{ group.createdAt }}</span></div>
           </div>
           <button @click="openInviteModal" class="mt-6 w-full px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center justify-center gap-2">

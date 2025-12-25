@@ -16,7 +16,6 @@
       <div class="mb-8">
         <h1 class="text-4xl font-bold text-gray-900">{{ group.name }}</h1>
         <p class="mt-2 text-lg text-gray-600">{{ group.description }}</p>
-        <p v-if="group.ownerName" class="mt-1 text-base text-gray-700">그룹장: {{ group.ownerName }}</p>
         <div class="mt-4 flex flex-wrap gap-2">
           <span v-for="tag in group.tags" :key="tag" class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-semibold">
             #{{ tag }}
@@ -32,7 +31,7 @@
 
       <!-- 탭 네비게이션 -->
       <div class="mb-8">
-        <div class="bg-white/80 backdrop-blur-xl rounded-2xl p-2 border border-gray-200/80 shadow-sm inline-flex space-x-2">
+        <div class="bg-white/80 backdrop-blur-xl rounded-2xl p-2 border border-gray-200/80 shadow-md inline-flex space-x-2">
           <button
             v-for="tab in tabs"
             :key="tab.id"

@@ -7,7 +7,7 @@
     <div v-else>
       <p class="text-sm text-gray-600 mb-4">그룹장을 위임할 멤버를 선택해주세요. 이 작업은 되돌릴 수 없습니다.</p>
       <div class="space-y-2">
-        <select v-model="selectedMemberId" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+        <select v-model="selectedMemberId" class="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800">
           <option disabled value="">멤버를 선택하세요</option>
           <option v-for="member in members" :key="member.userId" :value="member.userId">
             {{ member.nickname }}
@@ -15,7 +15,7 @@
         </select>
       </div>
       <div class="mt-6 text-right">
-        <button @click="handleDelegate" :disabled="!selectedMemberId" class="px-6 py-2 bg-yellow-500 text-white rounded-lg font-medium shadow-md transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">
+        <button @click="handleDelegate" :disabled="!selectedMemberId" class="px-6 py-2 bg-yellow-500 text-white rounded-xl font-medium shadow-md transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">
           그룹장 위임
         </button>
       </div>

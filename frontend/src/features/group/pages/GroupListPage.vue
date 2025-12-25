@@ -1,122 +1,129 @@
 <template>
   <div class="space-y-8">
     <!-- 페이지 헤더 -->
-    <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
+    <DashboardCard class="mb-8">
       <div class="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between">
-        <div class="mb-4 sm:mb-0">
-          <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2 tracking-tight">그룹 탐색</h1>
-          <p class="text-gray-600 text-lg md:text-xl">함께할 그룹을 찾거나, 새로운 그룹을 만들어보세요.</p>
+        <div>
+          <h1 class="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">그룹 탐색</h1>
         </div>
         <button @click="openCreateModal" class="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2">
-          <PlusCircle class="w-5 h-5" />
+          <Plus class="w-5 h-5" />
           <span>새 그룹</span>
         </button>
       </div>
-    </div>
+    </DashboardCard>
 
-    <!-- 검색 및 필터링 -->
-    <div v-if="activeTab === 'all'" class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
-      <div class="flex gap-2 mb-4">
-        <div class="relative flex-grow">
-          <input
-            type="text"
-            v-model="searchQuery"
-            placeholder="그룹명 또는 태그로 검색..."
-            class="w-full px-5 py-3 pl-12 pr-10 border border-gray-300 rounded-xl focus:ring-orange-500 focus:border-orange-500 text-gray-800 bg-gray-50"
-            @keyup.enter="handleSearch"
-          />
-          <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <button v-if="searchQuery" @click="searchQuery = ''" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-            <X class="w-5 h-5" />
-          </button>
-        </div>
-        <button @click="handleSearch" class="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2">
-          <span>검색</span>
-        </button>
-      </div>
+    <!-- 새로운 두 열 레이아웃 컨테이너 -->
+    <div class="flex flex-col lg:flex-row gap-8">
+      <!-- 왼쪽 열: 검색 및 태그 -->
+      <div class="lg:w-1/3">
+        <DashboardCard>
+          <div>
+            <div class="max-w-xl mx-auto mb-4">
+              <div class="relative">
+                <input
+                  type="text"
+                  v-model="searchQuery"
+                  placeholder="그룹명 또는 태그로 검색..."
+                  class="w-full px-5 py-3 pl-12 pr-16 border border-gray-300 rounded-xl focus:ring-orange-500 focus:border-orange-500 text-gray-800 bg-gray-50"
+                  @keyup.enter="handleSearch"
+                />
+                <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <button @click="handleSearch" class="absolute right-0 top-0 h-full px-4 text-white bg-orange-500 rounded-r-xl hover:bg-orange-600 transition-colors flex items-center justify-center">
+                  <span>검색</span>
+                </button>
+              </div>
+            </div>
 
-      <div class="flex flex-wrap gap-2">
-        <button
-          v-for="tag in availableTags"
-          :key="tag"
-          @click="toggleTag(tag)"
-          :class="[
-            'px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border',
-            selectedTags.includes(tag)
-              ? 'bg-orange-500 text-white border-orange-500 shadow-md'
-              : 'bg-gray-100 text-gray-700 border-gray-200 hover:border-orange-400 hover:text-orange-600'
-          ]"
-        >
-          #{{ tag }}
-        </button>
-        <button
-          v-if="selectedTags.length > 0"
-          @click="clearSelectedTags"
-          class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border bg-red-100 text-red-700 border-red-200 hover:border-red-400 hover:text-red-600"
-        >
-          태그 초기화
-        </button>
-      </div>
-    </div>
-
-    <!-- 메인 콘텐츠 컨테이너 -->
-    <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
-      <!-- 탭 네비게이션 -->
-      <div class="flex justify-start border-b border-gray-200/80 mb-6">
-        <button 
-          v-for="tab in tabs" 
-          :key="tab.id" 
-          @click="activeTab = tab.id"
-          :class="[
-            'px-4 py-2 text-sm font-medium transition-colors border-b-2',
-            activeTab === tab.id ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
-          ]"
-        >
-          {{ tab.name }}
-        </button>
-      </div>
-
-      <!-- 그룹 목록 -->
-      <div>
-        <div v-if="activeTab === 'all'">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <GroupCard 
-              v-for="group in allGroups" 
-              :key="group.groupId" 
-              :group="group"
-              @view-details="goToGroupDetail"
-              @join="joinGroup"
-            />
+            <div class="flex flex-wrap gap-2 justify-center">
+              <h3 class="w-full text-center text-lg font-semibold text-gray-700 mb-2">인기 태그</h3>
+              <button
+                v-for="tag in availableTags"
+                :key="tag"
+                @click="toggleTag(tag)"
+                :class="[
+                  'px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border',
+                  selectedTags.includes(tag)
+                    ? 'bg-orange-500 text-white border-orange-500 shadow-md'
+                    : 'bg-gray-100 text-gray-700 border-gray-200 hover:border-orange-400 hover:text-orange-600'
+                ]"
+              >
+                #{{ tag }}
+              </button>
+              <button
+                v-if="selectedTags.length > 0"
+                @click="clearSelectedTags"
+                class="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 border bg-red-100 text-red-700 border-red-200 hover:border-red-400 hover:text-red-600"
+              >
+                태그 초기화
+              </button>
+            </div>
           </div>
-          <p v-if="allGroups.length === 0" class="text-gray-500 text-center py-10 col-span-full">검색 결과가 없습니다.</p>
-          <Pagination
-            v-if="allGroupsPagination.totalPages > 1"
-            :current-page="allGroupsPagination.page"
-            :total-pages="allGroupsPagination.totalPages"
-            @page-change="handleAllGroupsPageChange"
-            class="mt-8"
-          />
-        </div>
+        </DashboardCard>
+      </div>
 
-        <div v-if="activeTab === 'my'">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <GroupCard 
-              v-for="group in myGroups" 
-              :key="group.groupId" 
-              :group="group"
-              @view-details="goToGroupDetail"
-              :isMyGroupsView="true"
-            />
+      <!-- 오른쪽 열: 탭 및 그룹 목록 -->
+      <div class="lg:w-2/3">
+        <!-- 메인 콘텐츠 컨테이너 -->
+        <DashboardCard>
+          <!-- 탭 네비게이션 -->
+          <div class="flex justify-start border-b border-gray-200/80 mb-6">
+            <button 
+              v-for="tab in tabs" 
+              :key="tab.id" 
+              @click="activeTab = tab.id"
+              :class="[
+                'px-4 py-2 text-sm font-medium transition-colors border-b-2',
+                activeTab === tab.id ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+              ]"
+            >
+              {{ tab.name }}
+            </button>
           </div>
-          <p v-if="myGroups.length === 0" class="text-gray-500 text-center py-10 col-span-full">가입한 그룹이 없습니다.</p>
-          <Pagination
-            v-if="myGroupsPagination.totalPages > 1"
-            :current-page="myGroupsPagination.page"
-            :total-pages="myGroupsPagination.totalPages"
-            @page-change="handleMyGroupsPageChange"
-            class="mt-8"
-          />
-        </div>
+
+          <!-- 그룹 목록 -->
+          <div>
+            <div v-if="activeTab === 'all'">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <GroupCard 
+                  v-for="group in allGroups" 
+                  :key="group.groupId" 
+                  :group="group"
+                  @view-details="goToGroupDetail"
+                  @join="joinGroup"
+                />
+              </div>
+              <p v-if="allGroups.length === 0" class="text-gray-500 text-center py-10 col-span-full">검색 결과가 없습니다.</p>
+              <Pagination
+                v-if="allGroupsPagination.totalPages > 1"
+                :current-page="allGroupsPagination.page"
+                :total-pages="allGroupsPagination.totalPages"
+                @page-change="handleAllGroupsPageChange"
+                class="mt-8"
+              />
+            </div>
+
+            <div v-if="activeTab === 'my'">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <GroupCard 
+                  v-for="group in myGroups" 
+                  :key="group.groupId" 
+                  :group="group"
+                  @view-details="goToGroupDetail"
+                  :isMyGroupsView="true"
+                />
+              </div>
+              <p v-if="myGroups.length === 0" class="text-gray-500 text-center py-10 col-span-full">가입한 그룹이 없습니다.</p>
+              <Pagination
+                v-if="myGroupsPagination.totalPages > 1"
+                :current-page="myGroupsPagination.page"
+                :total-pages="myGroupsPagination.page"
+                @page-change="handleMyGroupsPageChange"
+                class="mt-8"
+              />
+            </div>
+          </div>
+        </DashboardCard>
       </div>
     </div>
   </div>
@@ -131,7 +138,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { PlusCircle, Search, X } from 'lucide-vue-next';
+import { Plus, Search, X } from 'lucide-vue-next';
 import GroupCard from '@/features/group/components/GroupCard.vue';
 import GroupCreateModal from '@/features/group/components/GroupCreateModal.vue'
 import Pagination from '@/components/common/Pagination.vue';
@@ -177,8 +184,13 @@ const clearSelectedTags = () => {
 };
 
 const handleSearch = () => {
-  allGroupsPagination.value.page = 1;
-  fetchAllGroups();
+  if (activeTab.value === 'all') {
+    allGroupsPagination.value.page = 1;
+    fetchAllGroups();
+  } else if (activeTab.value === 'my') {
+    myGroupsPagination.value.page = 1;
+    loadMyGroupsData();
+  }
 }
 
 const fetchAllGroups = async () => {
@@ -213,11 +225,23 @@ const fetchAllGroups = async () => {
 };
 
 const loadMyGroupsData = async () => {
+  const keywordParts = [];
+  if (searchQuery.value) {
+    keywordParts.push(searchQuery.value);
+  }
+  if (selectedTags.value.length > 0) {
+    selectedTags.value.forEach(tag => keywordParts.push(`${tag}`));
+  }
+  const keywordString = keywordParts.join(' ').trim();
+
   try {
     const params = {
       page: myGroupsPagination.value.page,
       size: myGroupsPagination.value.size,
     };
+    if (keywordString) {
+      params.keyword = keywordString;
+    }
     const response = await fetchMyGroups(params);
     // Filter out groups that are not yet joined (e.g., 'WAIT' status)
     myGroups.value = response.list.filter(group => group.role === 'LEADER' || group.role === 'MEMBER');

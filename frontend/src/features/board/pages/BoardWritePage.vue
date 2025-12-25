@@ -1,13 +1,13 @@
 <template>
   <main class="mx-auto max-w-7xl px-4 sm:px-6 py-12 space-y-8">
     <!-- Header -->
-    <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
+    <DashboardCard>
       <h1 class="text-4xl font-bold text-gray-900">{{ isEditMode ? '게시글 수정' : '새 게시글 작성' }}</h1>
       <p class="text-gray-600 mt-1">자유롭게 글을 작성하거나 수정해주세요.</p>
-    </div>
+    </DashboardCard>
 
     <!-- Main Content Container -->
-    <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
+    <DashboardCard>
       <form @submit.prevent="handleSubmit" class="space-y-6">
         <!-- 카테고리 선택 -->
         <div>
@@ -85,7 +85,7 @@
           </button>
         </div>
       </form>
-    </div>
+    </DashboardCard>
   </main>
 </template>
 

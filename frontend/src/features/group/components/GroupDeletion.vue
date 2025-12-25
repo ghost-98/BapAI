@@ -5,7 +5,7 @@
       그룹을 삭제하면 모든 그룹 데이터와 게시물이 영구적으로 사라집니다. 이 작업은 되돌릴 수 없으니 신중하게 결정해주세요.
     </p>
     <div class="text-right">
-      <button @click="handleDelete" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-md transition-colors">
+      <button @click="handleDelete" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium shadow-md transition-colors">
         그룹 삭제
       </button>
     </div>

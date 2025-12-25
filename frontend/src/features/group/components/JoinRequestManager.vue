@@ -8,14 +8,14 @@
       <p>대기 중인 가입 요청이 없습니다.</p>
     </div>
     <div v-else class="space-y-4">
-      <div v-for="request in requests" :key="request.userId" class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+      <div v-for="request in requests" :key="request.userId" class="flex items-center justify-between p-4 bg-white/70 backdrop-blur-xl rounded-xl border border-gray-200/80 shadow-sm">
         <div>
           <p class="font-semibold text-gray-800">{{ request.nickname }}</p>
           <p class="text-sm text-gray-500">{{ new Date(request.requestedAt).toLocaleString() }}</p>
         </div>
         <div class="flex items-center gap-2">
-          <button @click="handleApprove(request.userId)" class="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600">승인</button>
-          <button @click="handleReject(request.userId)" class="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600">거절</button>
+          <button @click="handleApprove(request.userId)" class="px-4 py-2 text-sm bg-blue-500 text-white rounded-xl hover:bg-blue-600 shadow-md">승인</button>
+          <button @click="handleReject(request.userId)" class="px-4 py-2 text-sm bg-red-500 text-white rounded-xl hover:bg-red-600 shadow-md">거절</button>
         </div>
       </div>
     </div>

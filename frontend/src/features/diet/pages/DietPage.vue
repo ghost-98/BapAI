@@ -1,12 +1,12 @@
 <template>
   <div class="space-y-8">
     <!-- Header -->
-    <DietHeader 
+    <DietHeader
       :current-period="currentPeriod"
-      @add-record="openAddModal"
+      @openAddModal="openAddModal"
     />
     <!-- Main Content Container -->
-    <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50 space-y-6">
+    <DashboardCard class="space-y-6">
       
       <!-- Streak -->
       <div v-if="dietStreak.current_streak !== null" class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
@@ -175,7 +175,7 @@
       <!-- Daily Records -->
       <div v-if="currentView === 'daily' && activeSubTab === 'records'">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-bold text-gray-800">상세 식단 기록</h2>
+          <h2 class="text-xl font-bold text-gray-800">식단 기록</h2>
           <button v-if="hasAnyRecordsToday" @click="shareDietPost" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2 text-sm">
             <Share2 class="w-4 h-4" />
             식단 공유
@@ -210,7 +210,7 @@
         <h2 class="text-xl font-bold text-gray-800 mb-4">{{ currentSubTabTitle }}</h2>
         
         <!-- Daily AI Analysis -->
-        <div v-if="currentView === 'daily'" class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
+        <DashboardCard v-if="currentView === 'daily'">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div v-if="isToday(currentDate) && mealRecommendations.length > 0" class="p-1 bg-gradient-to-br from-purple-200 to-indigo-200 rounded-3xl shadow-lg">
               <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
@@ -225,26 +225,104 @@
                 </ul>
               </div>
             </div>
-            <DietReportCard 
-              v-if="isToday(currentDate)"
-              :report="aiDietReport"
-              :is-loading="isReportLoading"
-              class="mb-0"
-            />
-          </div>
-        </div>
+            <div v-if="isToday(currentDate)">
+              <div v-if="!hasRequestedAIReport" class="p-1 bg-gradient-to-br from-purple-200 to-indigo-200 rounded-3xl shadow-lg">
+                <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 text-center flex flex-col items-center justify-center min-h-[200px]">
+                  <Lock class="w-12 h-12 text-purple-500 mb-4" />
+                  <p class="text-lg font-semibold text-gray-800 mb-4">AI 리포트 잠금 해제</p>
+                  <button @click="triggerAIDietReport" class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-medium shadow-lg shadow-purple-500/30 transition-all flex items-center gap-2 transform hover:scale-105">
+                    <Sparkles class="w-5 h-5" />
+                    AI 리포트 확인하기
+                  </button>
+                </div>
+              </div>
+              <div v-else class="p-1 bg-gradient-to-br from-purple-200 to-indigo-200 rounded-3xl shadow-lg">
+                <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
+                  <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <Sparkles class="w-6 h-6 text-purple-500" />
+                    오늘의 AI 식단 리포트
+                  </h3>
+                  <div v-if="isReportLoading" class="text-center py-8 text-gray-500">
+                    <p>AI 식단 리포트를 불러오는 중입니다...</p>
+                  </div>
+                  <div v-else-if="aiAnalysisContent" class="space-y-4">
+                    <p class="text-gray-700 leading-relaxed whitespace-pre-wrap">{{ aiAnalysisContent }}</p>
+                  </div>
+                  <div v-else class="text-center py-8 text-gray-500">
+                    <p>AI 분석 내용을 불러올 수 없습니다.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+          </DashboardCard>
 
-        <!-- Weekly/Monthly AI Analysis Placeholder -->
-        <div v-if="currentView === 'weekly' || currentView === 'monthly'" class="text-center py-16 bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
-          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2.25 2.25 0 003.182 0l-7.23-7.23a2.25 2.25 0 00-3.182 0l-7.23 7.23a2.25 2.25 0 003.182 3.182L12 11.818l7.428 3.61z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.364v11.272" />
-          </svg>
-          <h3 class="mt-2 text-sm font-semibold text-gray-900">분석 기능 준비중</h3>
-          <p class="mt-1 text-sm text-gray-500">{{ currentView === 'weekly' ? '주간' : '월간' }} 리포트 기능은 현재 준비중입니다.</p>
-        </div>
+        <!-- Weekly/Monthly AI Analysis -->
+        <template v-if="currentView === 'weekly' || currentView === 'monthly'">
+          <DashboardCard>
+            <div v-if="currentView === 'weekly'">
+              <div v-if="!hasRequestedWeeklyAIReport" class="p-1 bg-gradient-to-br from-purple-200 to-indigo-200 rounded-3xl shadow-lg">
+                <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 text-center flex flex-col items-center justify-center min-h-[200px]">
+                  <Lock class="w-12 h-12 text-purple-500 mb-4" />
+                  <p class="text-lg font-semibold text-gray-800 mb-4">AI 주간 리포트 잠금 해제</p>
+                  <button @click="triggerWeeklyAIDietReport" class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-medium shadow-lg shadow-purple-500/30 transition-all flex items-center gap-2 transform hover:scale-105">
+                    <Sparkles class="w-5 h-5" />
+                    AI 리포트 확인하기
+                  </button>
+                </div>
+              </div>
+              <div v-else class="p-1 bg-gradient-to-br from-purple-200 to-indigo-200 rounded-3xl shadow-lg">
+                <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
+                  <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <Sparkles class="w-6 h-6 text-purple-500" />
+                    AI 주간 식단 리포트
+                  </h3>
+                  <div v-if="isWeeklyReportLoading" class="text-center py-8 text-gray-500">
+                    <p>AI 주간 식단 리포트를 불러오는 중입니다...</p>
+                  </div>
+                  <div v-else-if="weeklyAIAnalysisContent" class="space-y-4">
+                    <p class="text-gray-700 leading-relaxed whitespace-pre-wrap">{{ weeklyAIAnalysisContent }}</p>
+                  </div>
+                  <div v-else class="text-center py-8 text-gray-500">
+                    <p>AI 주간 분석 내용을 불러올 수 없습니다.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="currentView === 'monthly'">
+              <div v-if="!hasRequestedMonthlyAIReport" class="p-1 bg-gradient-to-br from-purple-200 to-indigo-200 rounded-3xl shadow-lg">
+                <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 text-center flex flex-col items-center justify-center min-h-[200px]">
+                  <Lock class="w-12 h-12 text-purple-500 mb-4" />
+                  <p class="text-lg font-semibold text-gray-800 mb-4">AI 월간 리포트 잠금 해제</p>
+                  <button @click="triggerMonthlyAIDietReport" class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-medium shadow-lg shadow-purple-500/30 transition-all flex items-center gap-2 transform hover:scale-105">
+                    <Sparkles class="w-5 h-5" />
+                    AI 리포트 확인하기
+                  </button>
+                </div>
+              </div>
+              <div v-else class="p-1 bg-gradient-to-br from-purple-200 to-indigo-200 rounded-3xl shadow-lg">
+                <div class="h-full w-full bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50">
+                  <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <Sparkles class="w-6 h-6 text-purple-500" />
+                    AI 월간 식단 리포트
+                  </h3>
+                  <div v-if="isMonthlyReportLoading" class="text-center py-8 text-gray-500">
+                    <p>AI 월간 식단 리포트를 불러오는 중입니다...</p>
+                  </div>
+                  <div v-else-if="monthlyAIAnalysisContent" class="space-y-4">
+                    <p class="text-gray-700 leading-relaxed whitespace-pre-wrap">{{ monthlyAIAnalysisContent }}</p>
+                  </div>
+                  <div v-else class="text-center py-8 text-gray-500">
+                    <p>AI 월간 분석 내용을 불러올 수 없습니다.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DashboardCard>
+        </template>
       </div>
-    </div>
+    </DashboardCard>
 
     <!-- Diet Record Modal -->
     <DietModal 
@@ -259,8 +337,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import apiClient, { getDietLogs, fetchDietStreak, getMealRecommendations, getAIDietReport } from '../../../api'
-import { Sunrise, Sunset, Moon, Utensils, Trophy, Share2, Sparkles, Flame, UtensilsCrossed, Cookie, Repeat, Wheat, Beef, Nut } from 'lucide-vue-next'
+import apiClient, { getDietLogs, fetchDietStreak, getMealRecommendations, getAIDietReport, getAIWeeklyReport, getAIMonthlyReport } from '../../../api'
+import { Sunrise, Sunset, Moon, Utensils, Trophy, Share2, Sparkles, Flame, UtensilsCrossed, Cookie, Repeat, Wheat, Beef, Nut, Lock } from 'lucide-vue-next'
 import DietModal from '../components/modal/DietModal.vue'
 import DietReportCard from '../components/shared/DietReportCard.vue';
 import DailySummaryOverview from '../components/shared/DailySummaryOverview.vue';
@@ -278,6 +356,7 @@ const selectedRecord = ref(null);
 const dailySummaryData = ref(null);
 const weeklySummaryData = ref(null);
 const monthlySummaryData = ref(null);
+const aiDailyAverageScore = ref(0);
 
 const currentDate = ref(new Date());
 const currentView = ref('daily');
@@ -292,8 +371,18 @@ const mealTypes = [
 const dietRecords = ref([]);
 const dietStreak = ref({ current_streak: null, longest_streak: null });
 const mealRecommendations = ref([]);
-const aiDietReport = ref(null);
+const aiDietReport = ref(null); // Keep this for DailySummaryOverview if needed, but not for direct display
+const aiAnalysisContent = ref(''); // New ref for raw AI analysis string
 const isReportLoading = ref(false);
+const hasRequestedAIReport = ref(false); // New ref
+
+const weeklyAIAnalysisContent = ref('');
+const hasRequestedWeeklyAIReport = ref(false);
+const isWeeklyReportLoading = ref(false);
+
+const monthlyAIAnalysisContent = ref('');
+const hasRequestedMonthlyAIReport = ref(false);
+const isMonthlyReportLoading = ref(false);
 
 const activeSubTab = ref('summary');
 
@@ -302,7 +391,7 @@ const filteredSubTabs = computed(() => {
     return [
       { id: 'summary', name: '일일 요약' },
       { id: 'records', name: '식단 기록' },
-      { id: 'ai_analysis', name: 'AI 요약' },
+      { id: 'ai_analysis', name: 'AI 분석' },
     ];
   }
   if (currentView.value === 'weekly') {
@@ -385,6 +474,18 @@ const fetchDietData = async () => {
 
     mealRecommendations.value = [];
     aiDietReport.value = null;
+    isReportLoading.value = false; // Reset loading state
+    hasRequestedAIReport.value = false; // Reset request state
+    aiAnalysisContent.value = '';
+
+    weeklyAIAnalysisContent.value = '';
+    hasRequestedWeeklyAIReport.value = false;
+    isWeeklyReportLoading.value = false;
+
+    monthlyAIAnalysisContent.value = '';
+    hasRequestedMonthlyAIReport.value = false;
+    isMonthlyReportLoading.value = false; // Add this line
+
     if (currentView.value === 'daily' && isToday(currentDate.value)) {
       const now = new Date();
       const eatenMeals = (dailySummaryData.value?.dietList || []).filter(record => new Date(`${record.date}T${record.time || '00:00:00'}`) <= now);
@@ -397,19 +498,68 @@ const fetchDietData = async () => {
         user_preferences: {}
       });
       mealRecommendations.value = recommendations.recommendations;
-
-      isReportLoading.value = true;
-      try {
-        const report = await getAIDietReport(toYYYYMMDD(now));
-        aiDietReport.value = report;
-      } catch (reportError) {
-        console.error('AI 식단 리포트 불러오기 실패:', reportError);
-      } finally {
-        isReportLoading.value = false;
-      }
     }
   } catch (error) {
     console.error('식단 데이터를 불러오는 데 실패했습니다:', error);
+  }
+};
+
+const triggerAIDietReport = async () => {
+  if (currentView.value === 'daily' && isToday(currentDate.value)) {
+    hasRequestedAIReport.value = true;
+    isReportLoading.value = true;
+    try {
+      const report = await getAIDietReport(toYYYYMMDD(currentDate.value));
+      aiAnalysisContent.value = report.aiAnalysis || 'AI 분석 내용을 불러올 수 없습니다.'; // Assign aiAnalysis content
+      aiDietReport.value = null; // Clear aiDietReport if not used for this display
+    } catch (reportError) {
+      console.error('AI 식단 리포트 불러오기 실패:', reportError);
+      aiAnalysisContent.value = 'AI 분석 내용을 불러오는 데 실패했습니다.'; // Error message
+      aiDietReport.value = null;
+    } finally {
+      isReportLoading.value = false;
+    }
+  }
+};
+
+const triggerWeeklyAIDietReport = async () => {
+  if (currentView.value === 'weekly') {
+    hasRequestedWeeklyAIReport.value = true;
+    isWeeklyReportLoading.value = true;
+    try {
+      const startOfWeek = new Date(currentDate.value);
+      const dayOfWeek = startOfWeek.getDay();
+      const diff = (dayOfWeek === 0) ? 1 : (1 - dayOfWeek); // Adjust to Monday as start of week
+      startOfWeek.setDate(startOfWeek.getDate() + diff);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+      const report = await getAIWeeklyReport(toYYYYMMDD(startOfWeek), toYYYYMMDD(endOfWeek));
+      weeklyAIAnalysisContent.value = report.aiAnalysis || 'AI 주간 분석 내용을 불러올 수 없습니다.';
+    } catch (reportError) {
+      console.error('AI 주간 리포트 불러오기 실패:', reportError);
+      weeklyAIAnalysisContent.value = 'AI 주간 분석 내용을 불러오는 데 실패했습니다.';
+    } finally {
+      isWeeklyReportLoading.value = false;
+    }
+  }
+};
+
+const triggerMonthlyAIDietReport = async () => {
+  if (currentView.value === 'monthly') {
+    hasRequestedMonthlyAIReport.value = true;
+    isMonthlyReportLoading.value = true;
+    try {
+      const year = currentDate.value.getFullYear();
+      const month = (currentDate.value.getMonth() + 1).toString().padStart(2, '0');
+      const report = await getAIMonthlyReport(`${year}-${month}`);
+      monthlyAIAnalysisContent.value = report.aiAnalysis || 'AI 월간 분석 내용을 불러올 수 없습니다.';
+    } catch (reportError) {
+      console.error('AI 월간 리포트 불러오기 실패:', reportError);
+      monthlyAIAnalysisContent.value = 'AI 월간 분석 내용을 불러오는 데 실패했습니다.';
+    } finally {
+      isMonthlyReportLoading.value = false;
+    }
   }
 };
 

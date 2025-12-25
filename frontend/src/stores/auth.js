@@ -14,6 +14,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isTempPasswordLogin = ref(sessionStorage.getItem('isTempPasswordLogin') === 'true');
   const isReauthenticated = ref(sessionStorage.getItem('isReauthenticated') === 'true');
   const firstStepCompleted = ref(sessionStorage.getItem('firstStepCompleted') === 'true');
+  const hasGivenConsent = ref(sessionStorage.getItem('hasGivenConsent') === 'true'); // New state for consent
 
   // Getters
   const isLoggedIn = computed(() => !!accessToken.value);
@@ -48,6 +49,7 @@ export const useAuthStore = defineStore('auth', () => {
     isTempPasswordLogin.value = false;
     isReauthenticated.value = false;
     firstStepCompleted.value = false;
+    hasGivenConsent.value = false; // Clear consent status
 
     // Clear only auth-related items from localStorage
     localStorage.removeItem('accessToken');
@@ -86,6 +88,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
+  const setHasGivenConsent = (value) => {
+    hasGivenConsent.value = value;
+    if (value) {
+      sessionStorage.setItem('hasGivenConsent', 'true');
+    } else {
+      sessionStorage.removeItem('hasGivenConsent');
+    }
+  };
+
   const logout = () => {
     clearAuth();
     sessionStorage.setItem('show_logout_notification', 'true');
@@ -100,6 +111,7 @@ export const useAuthStore = defineStore('auth', () => {
     isTempPasswordLogin,
     isReauthenticated,
     firstStepCompleted,
+    hasGivenConsent, // Include new state
     isLoggedIn,
     setTokens,
     setUserInfo,
@@ -107,6 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
     setTempPasswordLogin,
     setReauthenticated,
     setFirstStepCompleted,
+    setHasGivenConsent, // Include new action
     logout,
   };
 });

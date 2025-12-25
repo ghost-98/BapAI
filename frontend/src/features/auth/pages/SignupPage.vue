@@ -399,7 +399,7 @@ const handleSignup = async () => {
       
       notificationStore.showNotification('회원가입 성공 및 자동 로그인되었습니다. 추가 정보를 입력해주세요.', 'success');
       authStore.setFirstStepCompleted(true);
-      router.push('/additional-info');
+      router.push('/consent');
     } else {
       // 로그인 응답에 필수 데이터가 없을 경우
       throw new Error('자동 로그인 실패: 필수 응답 데이터가 부족합니다.');

@@ -1,12 +1,12 @@
 <template>
   <main class="mx-auto max-w-7xl px-4 sm:px-6 py-12 space-y-8">
     <!-- Header -->
-    <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50 flex items-center justify-between">
+    <DashboardCard class="flex items-center justify-between">
       <div>
         <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2 tracking-tight">게시글 상세</h1>
         <p class="text-gray-600 text-lg md:text-xl">게시글의 자세한 내용을 확인하고 의견을 남겨주세요.</p>
       </div>
-    </div>
+    </DashboardCard>
 
     <div v-if="post" class="space-y-8">
       <!-- Post Card -->
@@ -66,7 +66,7 @@
 
       <!-- Comment Section -->
       <div class="p-1 bg-gradient-to-br from-orange-200 to-rose-200 rounded-3xl shadow-lg">
-        <div class="bg-white/50 backdrop-blur-xl rounded-2xl p-4 border border-white/50 shadow-sm space-y-6">
+        <DashboardCard class="space-y-6">
           <!-- Comment Input Form -->
           <div v-if="isLoggedIn">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">댓글 작성</h3>
@@ -75,7 +75,7 @@
                 v-model="newCommentContent"
                 placeholder="댓글을 입력하세요..."
                 rows="3"
-                class="flex-grow px-4 py-2 rounded-xl border-2 border-gray-300 focus:border-orange-500 focus:ring-orange-500 focus:outline-none transition-colors bg-white/50 text-gray-800 shadow-sm"
+                class="flex-grow px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:ring-orange-500 focus:outline-none transition-colors bg-white/50 text-gray-800 shadow-sm"
               ></textarea>
               <button
                 @click="addComment"
@@ -89,7 +89,7 @@
           <!-- Comments Header -->
           <div class="flex justify-between items-center pt-4 border-t border-gray-200 mt-6">
             <h3 class="text-lg font-semibold text-gray-800">댓글 ({{ totalCount }})</h3>
-            <select v-model="sortOption" class="px-3 py-1.5 text-sm border-gray-300 rounded-md focus:border-orange-500 focus:ring-orange-500">
+            <select v-model="sortOption" class="px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800">
               <option value="latest">최신순</option>
               <option value="oldest">오래된순</option>
               <option value="likes">추천순</option>
@@ -98,7 +98,7 @@
 
           <!-- Existing Comments -->
           <div v-if="comments.length > 0" class="space-y-4">
-            <div v-for="comment in comments" :key="comment.commentId" class="bg-white/50 rounded-lg p-4 border border-white/50 shadow-sm">
+            <div v-for="comment in comments" :key="comment.commentId" class="bg-white/70 backdrop-blur-xl rounded-xl p-4 border border-gray-200/80 shadow-sm">
               <!-- Parent Comment -->
               <div>
                 <div class="flex items-center justify-between mb-3">
@@ -164,13 +164,13 @@
           </template>
 
           
-        </div>
+        </DashboardCard>
       </div>
     </div>
 
-    <div v-else class="text-center text-gray-500 py-20 bg-white/40 backdrop-blur-sm rounded-2xl p-8 border border-white/50">
+    <DashboardCard v-else class="text-center text-gray-500 py-20">
       <p class="text-xl font-medium">게시글을 불러오는 중이거나 찾을 수 없습니다.</p>
-    </div>
+    </DashboardCard>
   </main>
 </template>
 

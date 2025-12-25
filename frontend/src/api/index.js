@@ -6,7 +6,7 @@ import { useNotificationStore } from '../stores/notification'; // Pinia notifica
 // JSON용 Axios 인스턴스 생성
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': '69420' // ngrok으로 서버 띄울때만
@@ -16,7 +16,7 @@ const apiClient = axios.create({
 // Multipart/form-data용 Axios 인스턴스 생성
 export const apiClientForMultipart = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 30000, // 파일 업로드를 위해 타임아웃 시간 연장
+  timeout: 60000, // 파일 업로드를 위해 타임아웃 시간 연장
   headers: {
     'Content-Type': 'multipart/form-data',
     'ngrok-skip-browser-warning': '69420'
@@ -166,21 +166,41 @@ export const fetchDietStreak = async () => {
 };
 
 export const getMealRecommendations = async (data) => {
-  try {
-    const response = await apiClient.post(`/ai/recommend-meals`, data);
-    return response.data;
-  } catch (error) {
-    console.error('식단 추천 불러오기 실패:', error);
-    throw error;
-  }
+  // try {
+  //   const response = await apiClient.post(`/ai/recommend-meals`, data);
+  //   return response.data;
+  // } catch (error) {
+  //   console.error('식단 추천 불러오기 실패:', error);
+  //   throw error;
+  // }
 };
 
 export const getAIDietReport = async (date) => {
   try {
-    const response = await apiClient.get(`/ai/diet-report`, { params: { date } });
+    const response = await apiClient.get(`/ai/report/daily`, { params: { date } });
     return response.data;
   } catch (error) {
     console.error('AI 식단 리포트 불러오기 실패:', error);
+    throw error;
+  }
+};
+
+export const getAIWeeklyReport = async (startDate, endDate) => {
+  try {
+    const response = await apiClient.get(`/ai/report/weekly`, { params: { startDate, endDate } });
+    return response.data;
+  } catch (error) {
+    console.error('AI 주간 리포트 불러오기 실패:', error);
+    throw error;
+  }
+};
+
+export const getAIMonthlyReport = async (month) => {
+  try {
+    const response = await apiClient.get(`/ai/report/monthly`, { params: { month } });
+    return response.data;
+  } catch (error) {
+    console.error('AI 월간 리포트 불러오기 실패:', error);
     throw error;
   }
 };

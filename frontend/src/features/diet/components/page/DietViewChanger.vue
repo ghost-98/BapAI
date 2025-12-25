@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-between bg-white/50 backdrop-blur-sm rounded-2xl p-2 border border-gray-200/80 shadow-sm mb-4">
+  <div class="flex items-center justify-between bg-white/50 backdrop-blur-sm rounded-2xl p-2 border border-gray-200/80 shadow-md mb-4">
     <div class="bg-gray-100 p-1 rounded-lg">
       <button
         v-for="view in views"

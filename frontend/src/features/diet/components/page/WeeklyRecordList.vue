@@ -40,8 +40,11 @@
                 <div v-for="record in getRecordsByMealType(meal.apiValue)" :key="record.dietId" 
                      class="bg-white/70 backdrop-blur-sm border border-white/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300 flex items-center justify-between">
                   <div class="flex items-center gap-4 flex-grow">
-                    <div class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <!-- Placeholder for food image or icon -->
+                    <div class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      <img v-if="record.imgUrl" :src="record.imgUrl" alt="식단 이미지" class="w-full h-full object-cover">
+                      <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
                     </div>
                     <div class="flex-grow">
                       <p class="font-bold text-gray-800 text-lg flex items-center gap-2">{{ record.foodName }} <span class="text-sm font-normal text-gray-500">{{ record.time }}</span></p>
@@ -54,7 +57,6 @@
                     </div>
                   </div>
                   <div class="flex flex-col items-end ml-4">
-                    <button @click="$emit('edit-record', record)" class="p-2 text-gray-400 hover:text-orange-600 rounded-full hover:bg-gray-100"><Pencil class="w-4 h-4" /></button>
                     <button @click="$emit('delete-record', record.dietId)" class="p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100"><Trash2 class="w-4 h-4" /></button>
                   </div>
                 </div>
@@ -80,7 +82,7 @@
 
 <script setup>
 import { ref, watch } from 'vue';
-import { Pencil, Trash2 } from 'lucide-vue-next';
+import { Trash2 } from 'lucide-vue-next';
 
 const props = defineProps({
   weeklyData: {

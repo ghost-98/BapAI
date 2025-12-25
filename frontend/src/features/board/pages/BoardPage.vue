@@ -1,19 +1,18 @@
 <template>
   <div class="space-y-8">
     <!-- Header -->
-    <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50 flex items-center justify-between">
+    <DashboardCard class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2 tracking-tight">커뮤니티 게시판</h1>
-        <p class="text-gray-600 text-lg md:text-xl">자유롭게 소통하고 정보를 공유하는 공간입니다.</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">커뮤니티 게시판</h1>
       </div>
       <router-link to="/board/write" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium shadow-lg shadow-orange-500/30 transition-all flex items-center gap-2 transform hover:scale-105">
         <Plus class="w-5 h-5" />
         새 글
       </router-link>
-    </div>
+    </DashboardCard>
 
     <!-- Main Content Container -->
-    <div class="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/50">
+    <DashboardCard>
       <!-- Search, Filter, Sort, Layout Options -->
       <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         <!-- Left: Category Filter & Search -->
@@ -37,11 +36,11 @@
               v-model="searchQuery"
               @keyup.enter="handleSearch"
               placeholder="검색어를 입력하세요..."
-              class="w-full pl-10 pr-4 py-2 rounded-lg border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 bg-white/50 text-gray-800"
+              class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 focus:outline-none transition-colors bg-white/50 text-gray-800"
             />
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           </div>
-          <button @click="handleSearch" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors shadow-md">검색</button>
+          <button @click="handleSearch" class="px-4 py-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors shadow-md">검색</button>
         </div>
 
         <!-- Right: Sort & Layout Options -->
@@ -84,7 +83,7 @@
               조회수순
             </button>
           </div>
-          <button @click="isGridView = !isGridView" class="p-2 rounded-lg bg-white/50 border border-gray-300 shadow-sm hover:bg-gray-100/70 transition-colors">
+          <button @click="isGridView = !isGridView" class="p-2 rounded-xl bg-white/50 border border-gray-300 shadow-sm hover:bg-gray-100/70 transition-colors">
             <LayoutGrid v-if="!isGridView" class="w-5 h-5 text-gray-600" />
             <List v-else class="w-5 h-5 text-gray-600" />
           </button>
@@ -94,7 +93,7 @@
       <!-- Post List -->
       <div :class="{'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4': isGridView, 'space-y-4': !isGridView}">
         <div v-if="posts.length > 0" v-for="post in posts" :key="post.id" 
-             :class="['bg-white/60 p-5 rounded-2xl shadow-sm border border-white/50 transition-all duration-300 hover:shadow-md hover:border-orange-300 cursor-pointer', {'max-w-3xl mx-auto': !isGridView}]"
+             :class="['bg-white/60 p-5 rounded-2xl shadow-md border border-gray-200/80 transition-all duration-300 hover:shadow-lg hover:border-orange-300 cursor-pointer', {'max-w-3xl mx-auto': !isGridView}]"
              @click="goToPost(post)">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-3">
@@ -148,7 +147,7 @@
         @page-change="changePage"
         class="mt-8"
       />
-    </div>
+    </DashboardCard>
   </div>
 </template>
 

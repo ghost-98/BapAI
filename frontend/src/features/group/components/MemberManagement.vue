@@ -8,7 +8,7 @@
       <p>관리할 멤버가 없습니다.</p>
     </div>
     <div v-else class="space-y-4">
-      <div v-for="member in members" :key="member.userId" class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+      <div v-for="member in members" :key="member.userId" class="flex items-center justify-between p-4 bg-white/70 backdrop-blur-xl rounded-xl border border-gray-200/80 shadow-sm">
         <div>
           <p class="font-semibold text-gray-800">
             {{ member.nickname }}
@@ -20,11 +20,11 @@
             @click="handleKick(member.userId, member.nickname)"
             :disabled="member.role === 'LEADER'"
             :class="[
-              'px-4 py-2 text-sm text-white rounded-lg',
-              member.role === 'LEADER' ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'
+              'px-4 py-2 text-sm text-white rounded-xl',
+              member.role === 'LEADER' ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 shadow-md'
             ]"
           >
-            강퇴
+          강퇴
           </button>
         </div>
       </div>

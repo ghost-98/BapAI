@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
 import { fetchChatHistory, fetchOnlineUsers } from '@/api'; // Assuming these are REST APIs
@@ -60,7 +60,7 @@ const props = defineProps({
 
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
-const currentUserId = ref(authStore.userId);
+const currentUserId = computed(() => authStore.userId);
 const currentUserNickname = ref(authStore.userName);
 
 const messages = ref([]);

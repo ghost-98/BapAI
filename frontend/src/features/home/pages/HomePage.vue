@@ -13,6 +13,7 @@ const authStore = useAuthStore();
 
 // State
 const todaySummary = ref(null);
+const aiDietCoachingMessage = ref('');
 const healthAnalysis = ref(null);
 const weeklySummary = ref(null);
 const myScores = ref([]);
@@ -36,8 +37,8 @@ const caloriesGoal = computed(() => healthAnalysis.value?.recCalories || 0);
 const mealsEaten = computed(() => (todaySummary.value?.totalMealCount || 0));
 const snacksEaten = computed(() => todaySummary.value?.totalSnackCount || 0);
 const waterIntake = computed(() => todaySummary.value?.waterCupCount || 0);
-const waterGoal = computed(() => healthAnalysis.value?.waterGoal || 8);
-const aiScore = computed(() => todaySummary.value?.score || 0);
+const waterGoal = computed(() => todaySummary.value?.waterGoal || 8);
+const aiScore = 73;
 const dietList = computed(() => todaySummary.value?.dietList || []);
 
 // Macronutrient Computeds
@@ -52,20 +53,7 @@ const carbProgress = computed(() => carbsGoal.value > 0 ? Math.min((carbsIntake.
 const proteinProgress = computed(() => proteinGoal.value > 0 ? Math.min((proteinIntake.value / proteinGoal.value) * 100, 100) : 0);
 const fatProgress = computed(() => fatGoal.value > 0 ? Math.min((fatIntake.value / fatGoal.value) * 100, 100) : 0);
 
-const mealRecommendation = computed(() => {
-  const remainingCalories = Math.max(0, caloriesGoal.value - caloriesIntake.value);
-  const macros = [
-    { name: '탄수화물', ratio: carbsGoal.value > 0 ? carbsIntake.value / carbsGoal.value : 1 },
-    { name: '단백질', ratio: proteinGoal.value > 0 ? proteinIntake.value / proteinGoal.value : 1 },
-    { name: '지방', ratio: fatGoal.value > 0 ? fatIntake.value / fatGoal.value : 1 },
-  ];
-  const deficientNutrient = macros.every(m => m.ratio >= 1) ? '영양소를' : macros.sort((a, b) => a.ratio - b.ratio)[0].name;
 
-  const currentHour = new Date().getHours();
-  if (currentHour < 11) return `든든한 점심, ${deficientNutrient} 위주로 챙겨드시는 건 어떨까요?`;
-  if (currentHour < 17) return `출출한 오후, ${deficientNutrient}을 보충할 수 있는 건강한 간식을 추천해요.`;
-  return `저녁은 ${remainingCalories.toFixed(0)}kcal 내로 가볍게 드시고, 편안한 밤을 준비하세요.`;
-});
 
 // Weekly Data Computeds
 const weeklyTotalCalories = computed(() => weeklySummary.value?.totalCalories || 0);
@@ -104,8 +92,9 @@ const weeklyDetailLog = computed(() => {
 // --- Data Fetching and Transformation ---
 const fetchTodaySummary = async () => {
   try {
-    const response = await apiClient.get('/diet-logs/me', { params: { date: todayDateString } });
+    const response = await apiClient.get('/diet-logs/me', { params: { date: todayDateString} });
     todaySummary.value = response.data;
+    console.log("fetchTodaySummary received:", response.data);
   } catch (error) {
     console.error("오늘의 요약 정보를 가져오는 데 실패했습니다:", error);
     todaySummary.value = {};
@@ -116,6 +105,7 @@ const fetchHealthAnalysis = async () => {
   try {
     const response = await apiClient.get('/health/analyze/me');
     healthAnalysis.value = response.data;
+    console.log("fetchHealthAnalysis received:", response.data);
   } catch (error) {
     console.error("건강 분석 정보를 가져오는 데 실패했습니다:", error);
     healthAnalysis.value = {};
@@ -155,11 +145,24 @@ const fetchWeeklySummary = async () => {
   }
 };
 
+const fetchAiDietCoaching = async () => {
+  try {
+    const response = await apiClient.get('/ai/recommend');
+    // Assuming the response data is directly the message or has a 'message' key
+    aiDietCoachingMessage.value = response.data?.message || response.data || 'AI 식단 코칭을 불러오지 못했습니다.';
+    console.log("fetchAiDietCoaching received:", response.data);
+  } catch (error) {
+    console.error("AI 식단 코칭을 가져오는 데 실패했습니다:", error);
+    aiDietCoachingMessage.value = 'AI 식단 코칭을 불러오는 중 오류가 발생했습니다.';
+  }
+};
+
 onMounted(async () => {
   await Promise.all([
     fetchTodaySummary(),
     fetchHealthAnalysis(),
-    fetchWeeklySummary()
+    fetchWeeklySummary(),
+    fetchAiDietCoaching()
   ]);
 });
 </script>
@@ -179,7 +182,7 @@ onMounted(async () => {
         <div class="w-24 h-24 p-3 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-200 flex flex-col justify-center items-center text-center shadow-lg border border-white/50">
           <Scale :size="24" class="text-emerald-600 mb-1" />
           <p class="text-xs text-emerald-900/70 font-semibold">칼로리</p>
-          <p class="text-lg font-bold text-emerald-900">{{ caloriesIntake.toFixed(0) }}</p>
+          <p class="text-lg font-bold text-emerald-900">{{ caloriesIntake.toFixed(0) }}kcal</p>
         </div>
         <div class="w-24 h-24 p-3 rounded-2xl bg-gradient-to-br from-sky-100 to-blue-200 flex flex-col justify-center items-center text-center shadow-lg border border-white/50">
           <Droplets :size="24" class="text-sky-600 mb-1" />
@@ -189,7 +192,7 @@ onMounted(async () => {
         <div class="w-24 h-24 p-3 rounded-2xl bg-gradient-to-br from-violet-100 to-purple-200 flex flex-col justify-center items-center text-center shadow-lg border border-white/50">
           <Utensils :size="24" class="text-violet-600 mb-1" />
           <p class="text-xs text-violet-900/70 font-semibold">식사/간식</p>
-          <p class="text-lg font-bold text-violet-900">{{ mealsEaten }}/{{ snacksEaten }}</p>
+          <p class="text-lg font-bold text-violet-900">{{ mealsEaten }}끼/{{ snacksEaten }}회</p>
         </div>
       </div>
     </div>
@@ -222,7 +225,7 @@ onMounted(async () => {
         <div class="mt-6 border-t border-gray-200 pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-4 bg-orange-50 rounded-2xl border border-orange-200/80">
               <h4 class="font-bold text-gray-800 flex items-center gap-2 mb-2"><Soup :size="20" class="text-orange-600"/>AI 식단 코칭</h4>
-              <p class="text-sm text-gray-600">{{ mealRecommendation }}</p>
+              <p class="text-sm text-gray-600">{{ aiDietCoachingMessage }}</p>
           </div>
           <div class="bg-white/60 rounded-xl p-4 border border-white/50">
               <h4 class="font-bold text-gray-800 mb-4">일일 영양소 분석</h4>
@@ -302,9 +305,9 @@ onMounted(async () => {
             </div>
           </div>
         </DashboardCard>
-        <WaterTracker 
+        <WaterTracker
             :intake="waterIntake" :goal="waterGoal" :date="todayDateString"
-            @data-changed="fetchTodaySummary"
+            @data-changed="() => { fetchTodaySummary(); fetchHealthAnalysis(); }"
         />
       </div>
     </div>
